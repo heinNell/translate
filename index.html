@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Afrikaans to English Translator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z" fill="currentColor"/>
+                </svg>
+                <h1>Afrikaans → English</h1>
+            </div>
+            <p class="tagline">AI-powered translation with cultural sensitivity</p>
+        </header>
+
+        <main class="translator">
+            <!-- Mode Toggle -->
+            <div class="mode-toggle-container">
+                <div class="mode-toggle">
+                    <button class="mode-btn active" id="translateMode" data-mode="translate">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                            <path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+                        </svg>
+                        Translate
+                    </button>
+                    <button class="mode-btn" id="enhanceMode" data-mode="enhance">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                        Enhance
+                    </button>
+                    <button class="mode-btn" id="emailMode" data-mode="email">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                        </svg>
+                        Email
+                    </button>
+                </div>
+            </div>
+
+            <div class="translation-container">
+                <!-- Input Section -->
+                <div class="panel input-panel">
+                    <div class="panel-header">
+                        <span class="language-label" id="inputLabel">Afrikaans</span>
+                        <div class="panel-actions">
+                            <button class="action-btn" id="micBtn" title="Speech to text">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" fill="currentColor"/>
+                                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn" id="clearBtn" title="Clear text">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <textarea 
+                        id="inputText" 
+                        class="text-area" 
+                        placeholder="Enter Afrikaans text here...&#10;&#10;Examples:&#10;• Hoe gaan dit met jou?&#10;• Ek is lief vir jou&#10;• Baie dankie vir jou hulp"
+                        rows="8"
+                    ></textarea>
+                    <div class="char-count">
+                        <span id="charCount">0</span> / 5000 characters
+                    </div>
+                </div>
+
+                <!-- Translate Button -->
+                <div class="translate-section">
+                    <button class="translate-btn" id="translateBtn">
+                        <span class="btn-text">Translate</span>
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z" fill="currentColor"/>
+                        </svg>
+                        <div class="btn-loader" id="btnLoader"></div>
+                    </button>
+                </div>
+
+                <!-- Output Section -->
+                <div class="panel output-panel">
+                    <div class="panel-header">
+                        <span class="language-label" id="outputLabel">English</span>
+                        <div class="panel-actions">
+                            <button class="action-btn" id="copyBtn" title="Copy translation">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            <button class="action-btn" id="speakBtn" title="Listen to translation">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="output-area" id="outputArea">
+                        <div class="placeholder-text">
+                            Translation will appear here...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhancement Results Section -->
+            <div class="enhancement-section" id="enhancementSection">
+                <div class="enhancement-card">
+                    <h3 class="enhancement-title">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/>
+                        </svg>
+                        Text Enhancement Results
+                    </h3>
+
+                    <!-- Enhanced Text -->
+                    <div class="enhancement-item" id="enhancedTextSection">
+                        <span class="enhancement-label">Enhanced Version:</span>
+                        <div class="enhanced-text-box" id="enhancedText"></div>
+                        <button class="copy-enhanced-btn" id="copyEnhancedBtn" title="Copy enhanced text">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                            </svg>
+                            Copy
+                        </button>
+                    </div>
+
+                    <!-- Structure Improvements -->
+                    <div class="enhancement-item" id="structureSection">
+                        <span class="enhancement-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                <path d="M3 18h6v-2H3v2zM3 6v2h18V6H3zm0 7h12v-2H3v2z"/>
+                            </svg>
+                            Structure Improvements:
+                        </span>
+                        <ul class="structure-list" id="structureList"></ul>
+                    </div>
+
+                    <!-- Suggested Additions -->
+                    <div class="enhancement-item" id="additionsSection">
+                        <span class="enhancement-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                            </svg>
+                            Suggested Additions:
+                        </span>
+                        <div class="additions-container" id="additionsList"></div>
+                    </div>
+
+                    <!-- Enhancement Ideas -->
+                    <div class="enhancement-item" id="ideasSection">
+                        <span class="enhancement-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
+                            </svg>
+                            Ideas to Enhance Information:
+                        </span>
+                        <div class="ideas-container" id="ideasList"></div>
+                    </div>
+
+                    <!-- Alternative Versions -->
+                    <div class="enhancement-item" id="versionsSection">
+                        <span class="enhancement-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4z"/>
+                            </svg>
+                            Alternative Versions:
+                        </span>
+                        <div class="versions-container" id="versionsList"></div>
+                    </div>
+
+                    <!-- Tone Suggestions -->
+                    <div class="enhancement-item" id="toneEnhanceSection">
+                        <span class="enhancement-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                            </svg>
+                            Tone Suggestions:
+                        </span>
+                        <div class="tone-suggestions-container" id="toneEnhanceList"></div>
+                    </div>
+
+                    <!-- Clarity Score -->
+                    <div class="enhancement-item" id="claritySection">
+                        <span class="enhancement-label">Clarity Assessment:</span>
+                        <div class="clarity-container">
+                            <div class="clarity-bar">
+                                <div class="clarity-fill" id="clarityFill"></div>
+                            </div>
+                            <span class="clarity-value" id="clarityValue">-</span>
+                        </div>
+                        <p class="clarity-note" id="clarityNote"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Translation Results Section -->
+            <div class="email-section" id="emailSection">
+                <div class="email-card">
+                    <h3 class="email-title">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+                            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" fill="currentColor"/>
+                        </svg>
+                        Email Translation
+                    </h3>
+
+                    <!-- Subject Line -->
+                    <div class="email-item" id="subjectSection">
+                        <span class="email-label">Subject Line:</span>
+                        <div class="email-subject-box">
+                            <span id="emailSubject"></span>
+                            <button class="copy-section-btn" data-copy="subject" title="Copy subject">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Full Email Preview -->
+                    <div class="email-item" id="emailPreviewSection">
+                        <span class="email-label">Full Email (ready to copy):</span>
+                        <div class="email-preview-box" id="emailPreview"></div>
+                        <button class="copy-email-btn" id="copyEmailBtn" title="Copy entire email">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                            </svg>
+                            Copy Email
+                        </button>
+                    </div>
+
+                    <!-- Greeting Options -->
+                    <div class="email-item" id="greetingSection">
+                        <span class="email-label">Alternative Greetings:</span>
+                        <div class="greeting-options" id="greetingOptions"></div>
+                    </div>
+
+                    <!-- Closing Options -->
+                    <div class="email-item" id="closingSection">
+                        <span class="email-label">Alternative Closings:</span>
+                        <div class="closing-options" id="closingOptions"></div>
+                    </div>
+
+                    <!-- Tone Indicator -->
+                    <div class="email-item" id="emailToneSection">
+                        <span class="email-label">Email Tone:</span>
+                        <div class="email-tone-badges" id="emailToneBadges"></div>
+                    </div>
+
+                    <!-- Alternative Versions -->
+                    <div class="email-item" id="emailVersionsSection">
+                        <span class="email-label">Alternative Versions:</span>
+                        <div class="email-versions-container" id="emailVersionsList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alternatives & Context Section -->
+            <div class="details-section" id="detailsSection">
+                <div class="details-card">
+                    <h3 class="details-title">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/>
+                        </svg>
+                        Translation Details
+                    </h3>
+                    
+                    <!-- Formality Indicator -->
+                    <div class="detail-item" id="formalitySection">
+                        <span class="detail-label">Register:</span>
+                        <span class="formality-badge" id="formalityBadge">-</span>
+                    </div>
+
+                    <!-- Alternative Translations -->
+                    <div class="detail-item" id="alternativesSection">
+                        <span class="detail-label">Alternative translations:</span>
+                        <ul class="alternatives-list" id="alternativesList"></ul>
+                    </div>
+
+                    <!-- Cultural Notes -->
+                    <div class="detail-item" id="culturalSection">
+                        <span class="detail-label">Cultural context:</span>
+                        <p class="cultural-note" id="culturalNote"></p>
+                    </div>
+
+                    <!-- Idiomatic Expression -->
+                    <div class="detail-item" id="idiomSection">
+                        <span class="detail-label">Idiomatic expression:</span>
+                        <p class="idiom-note" id="idiomNote"></p>
+                    </div>
+
+                    <!-- Sentence Suggestions -->
+                    <div class="detail-item" id="suggestionsSection">
+                        <span class="detail-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
+                            </svg>
+                            ML-Powered Suggestions:
+                        </span>
+                        <div class="suggestions-container" id="suggestionsList"></div>
+                    </div>
+
+                    <!-- Grammar Analysis -->
+                    <div class="detail-item" id="grammarSection">
+                        <span class="detail-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                <path d="M12.45 16h2.09L9.43 3H7.57L2.46 16h2.09l1.12-3h5.64l1.14 3zm-6.02-5L8.5 5.48 10.57 11H6.43zm15.16.59l-8.09 8.09L9.83 16l-1.41 1.41 5.09 5.09L23 13l-1.41-1.41z"/>
+                            </svg>
+                            Grammar Analysis:
+                        </span>
+                        <div class="grammar-analysis" id="grammarAnalysis"></div>
+                    </div>
+
+                    <!-- Tone Analysis -->
+                    <div class="detail-item" id="toneSection">
+                        <span class="detail-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                            </svg>
+                            Tone & Sentiment:
+                        </span>
+                        <div class="tone-badges" id="toneBadges"></div>
+                    </div>
+
+                    <!-- Improvement Recommendations -->
+                    <div class="detail-item" id="improvementsSection">
+                        <span class="detail-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+                            </svg>
+                            Recommended Improvements:
+                        </span>
+                        <ul class="improvements-list" id="improvementsList"></ul>
+                    </div>
+
+                    <!-- Related Phrases -->
+                    <div class="detail-item" id="relatedSection">
+                        <span class="detail-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+                            </svg>
+                            Related Phrases:
+                        </span>
+                        <div class="related-phrases" id="relatedPhrases"></div>
+                    </div>
+
+                    <!-- Confidence Score -->
+                    <div class="detail-item" id="confidenceSection">
+                        <span class="detail-label">Translation Confidence:</span>
+                        <div class="confidence-container">
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="confidenceFill"></div>
+                            </div>
+                            <span class="confidence-value" id="confidenceValue">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Domain Insights Section -->
+            <div class="insights-section" id="insightsSection">
+                <div class="insights-card">
+                    <h3 class="insights-title">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z" fill="currentColor"/>
+                        </svg>
+                        Content Intelligence & Insights
+                    </h3>
+
+                    <!-- Detected Topic/Domain -->
+                    <div class="insight-item" id="topicSection">
+                        <span class="insight-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                            </svg>
+                            Detected Domain:
+                        </span>
+                        <div class="topic-badges" id="topicBadges"></div>
+                    </div>
+
+                    <!-- Strategic Recommendations -->
+                    <div class="insight-item" id="strategicSection">
+                        <span class="insight-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                            </svg>
+                            Strategic Recommendations:
+                        </span>
+                        <div class="strategic-list" id="strategicList"></div>
+                    </div>
+
+                    <!-- Alternative Approaches -->
+                    <div class="insight-item" id="alternativeApproachesSection">
+                        <span class="insight-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+                            </svg>
+                            Alternative Approaches to Consider:
+                        </span>
+                        <div class="approaches-container" id="approachesContainer"></div>
+                    </div>
+
+                    <!-- Key Concepts Explained -->
+                    <div class="insight-item" id="conceptsSection">
+                        <span class="insight-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M12 2l-5.5 9h11L12 2zm0 3.84L13.93 9h-3.87L12 5.84zM17.5 13c-2.49 0-4.5 2.01-4.5 4.5s2.01 4.5 4.5 4.5 4.5-2.01 4.5-4.5-2.01-4.5-4.5-4.5zm0 7c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5zM3 21.5h8v-8H3v8zm2-6h4v4H5v-4z"/>
+                            </svg>
+                            Key Concepts Explained:
+                        </span>
+                        <div class="concepts-grid" id="conceptsGrid"></div>
+                    </div>
+
+                    <!-- Industry Context -->
+                    <div class="insight-item" id="industryContextSection">
+                        <span class="insight-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/>
+                            </svg>
+                            Industry Context:
+                        </span>
+                        <p class="industry-context" id="industryContext"></p>
+                    </div>
+
+                    <!-- Best Practices -->
+                    <div class="insight-item" id="bestPracticesSection">
+                        <span class="insight-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                            </svg>
+                            Best Practices & Tips:
+                        </span>
+                        <ul class="best-practices-list" id="bestPracticesList"></ul>
+                    </div>
+
+                    <!-- Further Research Suggestions -->
+                    <div class="insight-item" id="researchSection">
+                        <span class="insight-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                            </svg>
+                            Suggested Further Research:
+                        </span>
+                        <div class="research-topics" id="researchTopics"></div>
+                    </div>
+
+                    <!-- Contextual Questions -->
+                    <div class="insight-item" id="questionsSection">
+                        <span class="insight-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>
+                            </svg>
+                            Questions to Consider:
+                        </span>
+                        <ul class="questions-list" id="questionsList"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expanded Context & Examples Section -->
+            <div class="expanded-section" id="expandedSection">
+                <div class="expanded-card">
+                    <h3 class="expanded-title">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" fill="currentColor"/>
+                        </svg>
+                        Expanded Context & Practical Examples
+                    </h3>
+
+                    <!-- Practical Examples -->
+                    <div class="expanded-item" id="practicalExamplesSection">
+                        <span class="expanded-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                            Practical Examples:
+                        </span>
+                        <div class="examples-container" id="examplesContainer"></div>
+                    </div>
+
+                    <!-- Real-World Scenarios -->
+                    <div class="expanded-item" id="scenariosSection">
+                        <span class="expanded-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM9 8h2v6H9zm4 0h2v6h-2z"/>
+                            </svg>
+                            Real-World Scenarios:
+                        </span>
+                        <div class="scenarios-container" id="scenariosContainer"></div>
+                    </div>
+
+                    <!-- Calculation Examples -->
+                    <div class="expanded-item" id="calculationsSection">
+                        <span class="expanded-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4 14h-2v-4H9V7h2v4h2V7h2v10z"/>
+                            </svg>
+                            Calculations & Formulas:
+                        </span>
+                        <div class="calculations-container" id="calculationsContainer"></div>
+                    </div>
+
+                    <!-- Industry Benchmarks -->
+                    <div class="expanded-item" id="benchmarksSection">
+                        <span class="expanded-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+                            </svg>
+                            Industry Benchmarks & Standards:
+                        </span>
+                        <div class="benchmarks-container" id="benchmarksContainer"></div>
+                    </div>
+
+                    <!-- Implementation Steps -->
+                    <div class="expanded-item" id="implementationSection">
+                        <span class="expanded-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                            </svg>
+                            Implementation Steps:
+                        </span>
+                        <div class="implementation-steps" id="implementationSteps"></div>
+                    </div>
+
+                    <!-- Case Study Examples -->
+                    <div class="expanded-item" id="caseStudySection">
+                        <span class="expanded-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6 10H6v-2h8v2zm4-4H6v-2h12v2z"/>
+                            </svg>
+                            Case Study Examples:
+                        </span>
+                        <div class="case-studies-container" id="caseStudiesContainer"></div>
+                    </div>
+
+                    <!-- Common Pitfalls -->
+                    <div class="expanded-item" id="pitfallsSection">
+                        <span class="expanded-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                            </svg>
+                            Common Pitfalls to Avoid:
+                        </span>
+                        <ul class="pitfalls-list" id="pitfallsList"></ul>
+                    </div>
+
+                    <!-- Related Metrics -->
+                    <div class="expanded-item" id="metricsSection">
+                        <span class="expanded-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                            </svg>
+                            Key Metrics & KPIs:
+                        </span>
+                        <div class="metrics-grid" id="metricsGrid"></div>
+                    </div>
+
+                    <!-- Templates & Tools -->
+                    <div class="expanded-item" id="templatesSection">
+                        <span class="expanded-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                            </svg>
+                            Templates & Tools:
+                        </span>
+                        <div class="templates-container" id="templatesContainer"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Section -->
+            <div class="feedback-section" id="feedbackSection">
+                <p>Was this translation helpful?</p>
+                <div class="feedback-buttons">
+                    <button class="feedback-btn" id="feedbackGood" data-rating="good">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z" fill="currentColor"/>
+                        </svg>
+                        Good
+                    </button>
+                    <button class="feedback-btn" id="feedbackBad" data-rating="bad">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z" fill="currentColor"/>
+                        </svg>
+                        Needs improvement
+                    </button>
+                </div>
+                <div class="feedback-thanks" id="feedbackThanks">
+                    Thank you for your feedback! This helps improve our translations.
+                </div>
+            </div>
+        </main>
+
+        <!-- API Key Modal -->
+        <div class="modal" id="apiKeyModal">
+            <div class="modal-content">
+                <h2>API Key Required</h2>
+                <p>To use this translator, you need an OpenRouter API key. Get one free at <a href="https://openrouter.ai" target="_blank">openrouter.ai</a></p>
+                <input type="password" id="apiKeyInput" placeholder="Enter your OpenRouter API key" class="api-key-input">
+                <div class="modal-buttons">
+                    <button class="modal-btn secondary" id="cancelApiKey">Cancel</button>
+                    <button class="modal-btn primary" id="saveApiKey">Save Key</button>
+                </div>
+                <p class="api-note">Your API key is stored locally in your browser and never sent to our servers.</p>
+            </div>
+        </div>
+
+        <!-- Settings Button -->
+        <button class="settings-btn" id="settingsBtn" title="API Settings">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/>
+            </svg>
+        </button>
+
+        <footer class="footer">
+            <p>Powered by AI • Translations may vary based on context</p>
+        </footer>
+    </div>
+
+    <!-- Recording indicator -->
+    <div class="recording-indicator" id="recordingIndicator">
+        <div class="recording-pulse"></div>
+        <span>Listening...</span>
+    </div>
+
+    <!-- Toast notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
