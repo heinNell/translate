@@ -102,6 +102,7 @@ class AfrikaansTranslator {
         this.translateModeBtn = document.getElementById('translateMode');
         this.enhanceModeBtn = document.getElementById('enhanceMode');
         this.emailModeBtn = document.getElementById('emailMode');
+        this.agentModeBtn = document.getElementById('agentMode');
         this.inputLabel = document.getElementById('inputLabel');
         this.outputLabel = document.getElementById('outputLabel');
         this.currentMode = 'translate';
@@ -142,9 +143,26 @@ class AfrikaansTranslator {
         this.emailVersionsSection = document.getElementById('emailVersionsSection');
         this.emailVersionsList = document.getElementById('emailVersionsList');
         
-        // Current enhancement/email data
+        // AI Agent section elements
+        this.agentSection = document.getElementById('agentSection');
+        this.answerSection = document.getElementById('answerSection');
+        this.agentAnswer = document.getElementById('agentAnswer');
+        this.keyInsightsSection = document.getElementById('keyInsightsSection');
+        this.keyInsightsList = document.getElementById('keyInsightsList');
+        this.expandedIdeasSection = document.getElementById('expandedIdeasSection');
+        this.expandedIdeasList = document.getElementById('expandedIdeasList');
+        this.actionItemsSection = document.getElementById('actionItemsSection');
+        this.actionItemsList = document.getElementById('actionItemsList');
+        this.relatedQuestionsSection = document.getElementById('relatedQuestionsSection');
+        this.relatedQuestionsList = document.getElementById('relatedQuestionsList');
+        this.resourcesSection = document.getElementById('resourcesSection');
+        this.resourcesList = document.getElementById('resourcesList');
+        this.copyAgentBtn = document.getElementById('copyAgentBtn');
+        
+        // Current enhancement/email/agent data
         this.currentEnhancement = null;
         this.currentEmail = null;
+        this.currentAgentResponse = null;
         
         // Speech recognition
         this.recognition = null;
@@ -175,6 +193,7 @@ class AfrikaansTranslator {
         this.translateModeBtn.addEventListener('click', () => this.setMode('translate'));
         this.enhanceModeBtn.addEventListener('click', () => this.setMode('enhance'));
         this.emailModeBtn.addEventListener('click', () => this.setMode('email'));
+        this.agentModeBtn.addEventListener('click', () => this.setMode('agent'));
         
         // Translation/Enhancement/Email
         this.translateBtn.addEventListener('click', () => this.handleAction());
@@ -198,6 +217,9 @@ class AfrikaansTranslator {
         
         // Copy email
         this.copyEmailBtn.addEventListener('click', () => this.copyEmail());
+        
+        // Copy agent response
+        this.copyAgentBtn.addEventListener('click', () => this.copyAgentResponse());
         
         // Settings
         this.settingsBtn.addEventListener('click', () => this.showModal());
@@ -235,6 +257,7 @@ class AfrikaansTranslator {
         this.translateModeBtn.classList.toggle('active', mode === 'translate');
         this.enhanceModeBtn.classList.toggle('active', mode === 'enhance');
         this.emailModeBtn.classList.toggle('active', mode === 'email');
+        this.agentModeBtn.classList.toggle('active', mode === 'agent');
         
         // Update labels and placeholders
         if (mode === 'translate') {
@@ -246,8 +269,10 @@ class AfrikaansTranslator {
             // Hide other sections
             this.enhancementSection.classList.remove('visible');
             this.emailSection.classList.remove('visible');
+            this.agentSection.classList.remove('visible');
             this.hideEnhancement();
             this.hideEmail();
+            this.hideAgent();
         } else if (mode === 'enhance') {
             this.inputLabel.textContent = 'Your Text';
             this.outputLabel.textContent = 'Enhanced';
@@ -256,8 +281,10 @@ class AfrikaansTranslator {
             this.outputArea.innerHTML = '<div class="placeholder-text">Enhanced text will appear here...</div>';
             // Hide other sections
             this.emailSection.classList.remove('visible');
+            this.agentSection.classList.remove('visible');
             this.hideDetails();
             this.hideEmail();
+            this.hideAgent();
         } else if (mode === 'email') {
             this.inputLabel.textContent = 'Afrikaans Email';
             this.outputLabel.textContent = 'English Email';
@@ -266,14 +293,29 @@ class AfrikaansTranslator {
             this.outputArea.innerHTML = '<div class="placeholder-text">Translated email will appear here...</div>';
             // Hide other sections
             this.enhancementSection.classList.remove('visible');
+            this.agentSection.classList.remove('visible');
             this.hideDetails();
             this.hideEnhancement();
+            this.hideAgent();
+        } else if (mode === 'agent') {
+            this.inputLabel.textContent = 'Your Question / Context';
+            this.outputLabel.textContent = 'AI Analysis';
+            this.inputText.placeholder = "Ask a question or provide context for AI analysis...\n\nExamples:\n• Help me with budget strategy ideas for 2026\n• Analyze this business plan and expand on it\n• What are the key considerations for fleet optimization?\n• Expand on these points: [paste your notes]";
+            document.querySelector('.translate-btn .btn-text').textContent = 'Ask AI Agent';
+            this.outputArea.innerHTML = '<div class="placeholder-text">AI analysis will appear here...</div>';
+            // Hide other sections
+            this.enhancementSection.classList.remove('visible');
+            this.emailSection.classList.remove('visible');
+            this.hideDetails();
+            this.hideEnhancement();
+            this.hideEmail();
         }
         
         // Clear current data
         this.currentTranslation = null;
         this.currentEnhancement = null;
         this.currentEmail = null;
+        this.currentAgentResponse = null;
     }
     
     handleAction() {
@@ -283,6 +325,8 @@ class AfrikaansTranslator {
             this.enhance();
         } else if (this.currentMode === 'email') {
             this.translateEmail();
+        } else if (this.currentMode === 'agent') {
+            this.askAgent();
         }
     }
     
@@ -1802,6 +1846,359 @@ Always respond with valid JSON only, no additional text.`;
         this.closingSection.classList.remove('visible');
         this.emailToneSection.classList.remove('visible');
         this.emailVersionsSection.classList.remove('visible');
+    }
+    
+    // AI Agent Methods
+    async askAgent() {
+        const text = this.inputText.value.trim();
+        
+        if (!text) {
+            this.showToast('Please enter a question or context for the AI Agent.', 'error');
+            return;
+        }
+        
+        if (!this.apiKey) {
+            this.showModal();
+            return;
+        }
+        
+        if (text.length > 10000) {
+            this.showToast('Text is too long. Maximum 10000 characters allowed for agent mode.', 'error');
+            return;
+        }
+        
+        this.setLoading(true);
+        this.hideAgent();
+        
+        try {
+            const result = await this.callAgentAPI(text);
+            this.displayAgentResponse(result);
+        } catch (error) {
+            console.error('Agent error:', error);
+            this.showToast(error.message || 'AI Agent failed. Please try again.', 'error');
+            this.outputArea.innerHTML = '<div class="placeholder-text">AI Agent analysis failed. Please try again.</div>';
+        } finally {
+            this.setLoading(false);
+        }
+    }
+    
+    async callAgentAPI(text) {
+        const systemPrompt = `You are an expert AI business strategist and analyst assistant. Your role is to analyze questions, contexts, and data provided by the user and deliver comprehensive, actionable insights.
+
+Your expertise spans:
+- Business Strategy & Planning
+- Budget & Financial Analysis
+- Operations & Process Optimization
+- Market Analysis & Competitive Intelligence
+- Project Management & Implementation
+- Risk Assessment & Mitigation
+- Innovation & Growth Strategies
+- Team & Resource Management
+
+When responding to user queries, provide a comprehensive JSON response:
+{
+    "summary": "A clear, concise summary answering the user's question or analyzing their context (2-3 paragraphs)",
+    
+    "keyInsights": [
+        "Key insight or finding #1 - specific and actionable",
+        "Key insight or finding #2 - with supporting rationale",
+        "Key insight or finding #3 - practical and implementable",
+        "Key insight or finding #4 - strategic perspective"
+    ],
+    
+    "expandedIdeas": [
+        {
+            "title": "Strategic Idea Title",
+            "description": "Detailed expansion of this idea with specific implementation guidance",
+            "impact": "high|medium|low",
+            "effort": "high|medium|low",
+            "timeline": "short-term (1-3 months)|medium-term (3-6 months)|long-term (6-12 months)",
+            "keyActions": ["Action 1", "Action 2", "Action 3"]
+        }
+    ],
+    
+    "actionItems": [
+        {
+            "priority": 1,
+            "task": "Specific actionable task",
+            "details": "Detailed explanation of what needs to be done",
+            "owner": "Suggested responsibility (e.g., Finance Team, Management)",
+            "deadline": "Suggested timeframe"
+        }
+    ],
+    
+    "followUpQuestions": [
+        "Strategic question to explore further",
+        "Question to deepen analysis",
+        "Question to consider alternatives"
+    ],
+    
+    "resources": [
+        {
+            "type": "Framework|Tool|Template|Methodology|Best Practice",
+            "name": "Resource name",
+            "description": "How this resource can help",
+            "application": "How to apply it to the current context"
+        }
+    ],
+    
+    "risks": [
+        {
+            "risk": "Potential risk or challenge",
+            "mitigation": "How to mitigate or address it"
+        }
+    ],
+    
+    "metrics": [
+        {
+            "kpi": "Key Performance Indicator name",
+            "target": "Suggested target value",
+            "rationale": "Why this metric matters"
+        }
+    ]
+}
+
+Guidelines for Budget Strategy Analysis:
+1. Focus on practical, implementable recommendations
+2. Consider both short-term quick wins and long-term strategic initiatives
+3. Provide specific numbers, percentages, and benchmarks where applicable
+4. Address resource allocation and prioritization
+5. Include risk considerations and contingency planning
+6. Suggest measurement frameworks and success criteria
+7. Consider stakeholder perspectives and change management
+8. Reference industry best practices and proven methodologies
+
+For any question or context, always:
+- Break down complex topics into manageable components
+- Provide specific examples and case scenarios
+- Offer multiple strategic options with pros/cons
+- Include implementation roadmaps where applicable
+- Highlight critical success factors
+- Address potential obstacles proactively
+
+Always respond with valid JSON only, no additional text.`;
+
+        const response = await fetch(this.apiEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${this.apiKey}`,
+                'HTTP-Referer': window.location.origin,
+                'X-Title': 'AI Strategy Agent'
+            },
+            body: JSON.stringify({
+                model: this.model,
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: `Please analyze the following question/context and provide comprehensive strategic insights, expanded ideas, and actionable recommendations:\n\n"${text}"` }
+                ],
+                temperature: 0.5,
+                max_tokens: 6000
+            })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            if (response.status === 401) {
+                throw new Error('Invalid API key. Please check your OpenRouter API key.');
+            } else if (response.status === 429) {
+                throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+            } else {
+                throw new Error(errorData.error?.message || `API error: ${response.status}`);
+            }
+        }
+        
+        const data = await response.json();
+        const content = data.choices[0]?.message?.content;
+        
+        if (!content) {
+            throw new Error('No response received from AI Agent');
+        }
+        
+        try {
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid response format');
+        } catch (e) {
+            console.error('JSON parse error:', e);
+            throw new Error('Failed to parse AI Agent response');
+        }
+    }
+    
+    displayAgentResponse(result) {
+        this.currentAgentResponse = result;
+        
+        // Display summary in output area
+        if (result.summary) {
+            this.outputArea.innerHTML = `<div class="translation-text" style="white-space: pre-wrap; line-height: 1.6;">${this.escapeHtml(result.summary)}</div>`;
+        }
+        
+        // Show agent section
+        this.agentSection.classList.add('visible');
+        
+        // Display answer/summary
+        if (result.summary) {
+            this.answerSection.classList.add('visible');
+            this.agentAnswer.innerHTML = `<div style="line-height: 1.7;">${this.escapeHtml(result.summary)}</div>`;
+        }
+        
+        // Display key insights
+        if (result.keyInsights && result.keyInsights.length > 0) {
+            this.keyInsightsSection.classList.add('visible');
+            this.keyInsightsList.innerHTML = result.keyInsights.map(insight => `
+                <li class="key-insight-item">${this.escapeHtml(insight)}</li>
+            `).join('');
+        } else {
+            this.keyInsightsSection.classList.remove('visible');
+        }
+        
+        // Display expanded ideas
+        if (result.expandedIdeas && result.expandedIdeas.length > 0) {
+            this.expandedIdeasSection.classList.add('visible');
+            this.expandedIdeasList.innerHTML = result.expandedIdeas.map(idea => `
+                <div class="expanded-idea-card">
+                    <div class="idea-header">
+                        <span class="idea-title">${this.escapeHtml(idea.title)}</span>
+                        <div class="idea-badges">
+                            ${idea.impact ? `<span class="impact-badge ${idea.impact}">${idea.impact} impact</span>` : ''}
+                            ${idea.timeline ? `<span class="timeline-badge">${idea.timeline}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="idea-description">${this.escapeHtml(idea.description)}</div>
+                    ${idea.keyActions && idea.keyActions.length > 0 ? `
+                        <div class="idea-actions">
+                            <strong>Key Actions:</strong>
+                            <ul>${idea.keyActions.map(a => `<li>${this.escapeHtml(a)}</li>`).join('')}</ul>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        } else {
+            this.expandedIdeasSection.classList.remove('visible');
+        }
+        
+        // Display action items
+        if (result.actionItems && result.actionItems.length > 0) {
+            this.actionItemsSection.classList.add('visible');
+            this.actionItemsList.innerHTML = result.actionItems.map(item => `
+                <div class="action-item-card">
+                    <div class="action-priority">Priority ${item.priority}</div>
+                    <div class="action-task">${this.escapeHtml(item.task)}</div>
+                    <div class="action-details">${this.escapeHtml(item.details)}</div>
+                    <div class="action-meta">
+                        ${item.owner ? `<span class="action-owner">👤 ${this.escapeHtml(item.owner)}</span>` : ''}
+                        ${item.deadline ? `<span class="action-deadline">📅 ${this.escapeHtml(item.deadline)}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            this.actionItemsSection.classList.remove('visible');
+        }
+        
+        // Display follow-up questions
+        if (result.followUpQuestions && result.followUpQuestions.length > 0) {
+            this.relatedQuestionsSection.classList.add('visible');
+            this.relatedQuestionsList.innerHTML = result.followUpQuestions.map(q => `
+                <div class="follow-up-question" onclick="document.getElementById('inputText').value = '${this.escapeHtml(q).replace(/'/g, "\\'")}'; document.getElementById('inputText').focus();">
+                    <span class="question-icon">❓</span>
+                    <span class="question-text">${this.escapeHtml(q)}</span>
+                </div>
+            `).join('');
+        } else {
+            this.relatedQuestionsSection.classList.remove('visible');
+        }
+        
+        // Display resources
+        if (result.resources && result.resources.length > 0) {
+            this.resourcesSection.classList.add('visible');
+            this.resourcesList.innerHTML = result.resources.map(res => `
+                <div class="resource-card">
+                    <span class="resource-type">${this.escapeHtml(res.type)}</span>
+                    <div class="resource-name">${this.escapeHtml(res.name)}</div>
+                    <div class="resource-desc">${this.escapeHtml(res.description)}</div>
+                    ${res.application ? `<div class="resource-application"><strong>Application:</strong> ${this.escapeHtml(res.application)}</div>` : ''}
+                </div>
+            `).join('');
+        } else {
+            this.resourcesSection.classList.remove('visible');
+        }
+        
+        // Bind copy agent button
+        this.copyAgentBtn.onclick = () => this.copyAgentResponse();
+    }
+    
+    hideAgent() {
+        this.agentSection.classList.remove('visible');
+        this.answerSection.classList.remove('visible');
+        this.keyInsightsSection.classList.remove('visible');
+        this.expandedIdeasSection.classList.remove('visible');
+        this.actionItemsSection.classList.remove('visible');
+        this.relatedQuestionsSection.classList.remove('visible');
+        this.resourcesSection.classList.remove('visible');
+    }
+    
+    async copyAgentResponse() {
+        if (!this.currentAgentResponse) {
+            this.showToast('No analysis to copy.', 'error');
+            return;
+        }
+        
+        // Format the response as readable text
+        let text = '';
+        
+        if (this.currentAgentResponse.summary) {
+            text += `ANALYSIS SUMMARY\n${'='.repeat(50)}\n${this.currentAgentResponse.summary}\n\n`;
+        }
+        
+        if (this.currentAgentResponse.keyInsights && this.currentAgentResponse.keyInsights.length > 0) {
+            text += `KEY INSIGHTS\n${'='.repeat(50)}\n`;
+            this.currentAgentResponse.keyInsights.forEach((insight, i) => {
+                text += `${i + 1}. ${insight}\n`;
+            });
+            text += '\n';
+        }
+        
+        if (this.currentAgentResponse.expandedIdeas && this.currentAgentResponse.expandedIdeas.length > 0) {
+            text += `EXPANDED IDEAS & RECOMMENDATIONS\n${'='.repeat(50)}\n`;
+            this.currentAgentResponse.expandedIdeas.forEach((idea, i) => {
+                text += `\n${i + 1}. ${idea.title}\n`;
+                text += `   Impact: ${idea.impact || 'N/A'} | Timeline: ${idea.timeline || 'N/A'}\n`;
+                text += `   ${idea.description}\n`;
+                if (idea.keyActions && idea.keyActions.length > 0) {
+                    text += `   Key Actions:\n`;
+                    idea.keyActions.forEach(a => text += `   • ${a}\n`);
+                }
+            });
+            text += '\n';
+        }
+        
+        if (this.currentAgentResponse.actionItems && this.currentAgentResponse.actionItems.length > 0) {
+            text += `ACTION ITEMS\n${'='.repeat(50)}\n`;
+            this.currentAgentResponse.actionItems.forEach(item => {
+                text += `[Priority ${item.priority}] ${item.task}\n`;
+                text += `   ${item.details}\n`;
+                if (item.owner) text += `   Owner: ${item.owner}\n`;
+                if (item.deadline) text += `   Deadline: ${item.deadline}\n`;
+                text += '\n';
+            });
+        }
+        
+        if (this.currentAgentResponse.followUpQuestions && this.currentAgentResponse.followUpQuestions.length > 0) {
+            text += `FOLLOW-UP QUESTIONS\n${'='.repeat(50)}\n`;
+            this.currentAgentResponse.followUpQuestions.forEach((q, i) => {
+                text += `${i + 1}. ${q}\n`;
+            });
+            text += '\n';
+        }
+        
+        try {
+            await navigator.clipboard.writeText(text);
+            this.showToast('Full analysis copied to clipboard!', 'success');
+        } catch (err) {
+            this.showToast('Failed to copy. Please select and copy manually.', 'error');
+        }
     }
     
     async copyEmail() {
