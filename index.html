@@ -45,9 +45,9 @@
                     </button>
                     <button class="mode-btn" id="agentMode" data-mode="agent">
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                            <path d="M21 10.12h-6.78l2.74-2.82c-2.73-2.7-7.15-2.8-9.88-.1-2.73 2.71-2.73 7.08 0 9.79s7.15 2.71 9.88 0C18.32 15.65 19 14.08 19 12.1h2c0 1.98-.88 4.55-2.64 6.29-3.51 3.48-9.21 3.48-12.72 0-3.5-3.47-3.53-9.11-.02-12.58s9.14-3.47 12.65 0L21 3v7.12zM12.5 8v4.25l3.5 2.08-.72 1.21L11 13V8h1.5z"/>
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
                         </svg>
-                        AI Agent
+                        Ask AI
                     </button>
                 </div>
             </div>
@@ -590,8 +590,9 @@
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
                             <path d="M21 10.12h-6.78l2.74-2.82c-2.73-2.7-7.15-2.8-9.88-.1-2.73 2.71-2.73 7.08 0 9.79s7.15 2.71 9.88 0C18.32 15.65 19 14.08 19 12.1h2c0 1.98-.88 4.55-2.64 6.29-3.51 3.48-9.21 3.48-12.72 0-3.5-3.47-3.53-9.11-.02-12.58s9.14-3.47 12.65 0L21 3v7.12zM12.5 8v4.25l3.5 2.08-.72 1.21L11 13V8h1.5z" fill="currentColor"/>
                         </svg>
-                        AI Agent Analysis
+                        AI Strategic Advisor
                     </h3>
+                    <p class="agent-subtitle">Structured analysis with enhancement ideas, strategic timelines, and probing questions to continue the conversation</p>
 
                     <!-- Answer Section -->
                     <div class="agent-item" id="answerSection">
@@ -599,73 +600,150 @@
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
                                 <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/>
                             </svg>
-                            Analysis & Response:
+                            Summary:
                         </span>
                         <div class="agent-answer" id="agentAnswer"></div>
                     </div>
 
-                    <!-- Key Insights -->
+                    <!-- Improved Version Section - Copy Ready -->
+                    <div class="agent-item" id="improvedVersionSection">
+                        <div class="improved-version-header">
+                            <span class="agent-label">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                                </svg>
+                                ✨ Improved Version (Copy & Use):
+                            </span>
+                            <button class="copy-improved-btn" id="copyImprovedBtn" title="Copy improved version">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                    <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                                </svg>
+                                Copy
+                            </button>
+                        </div>
+                        <div class="improved-version-content" id="improvedVersionContent"></div>
+                    </div>
+
+                    <!-- Confidence Score -->
+                    <div class="agent-item" id="agentConfidenceSection">
+                        <span class="agent-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                            Confidence Level:
+                        </span>
+                        <div class="confidence-container">
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="confidenceFillAgent"></div>
+                            </div>
+                            <span class="confidence-value" id="confidenceValueAgent">0%</span>
+                        </div>
+                        <div class="confidence-explanation" id="confidenceExplanation"></div>
+                    </div>
+
+                    <!-- Strategic Analysis -->
                     <div class="agent-item" id="keyInsightsSection">
                         <span class="agent-label">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
                                 <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
                             </svg>
-                            Key Insights:
+                            Strategic Analysis:
                         </span>
-                        <ul class="key-insights-list" id="keyInsightsList"></ul>
+                        <div class="strategic-analysis-container" id="keyInsightsList"></div>
                     </div>
 
-                    <!-- Expanded Ideas -->
-                    <div class="agent-item" id="expandedIdeasSection">
+                    <!-- Key Metrics -->
+                    <div class="agent-item" id="sourcesSection">
                         <span class="agent-label">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
                             </svg>
-                            Expanded Ideas & Recommendations:
+                            Key Metrics & KPIs:
                         </span>
-                        <div class="expanded-ideas-container" id="expandedIdeasList"></div>
+                        <div class="sources-container" id="sourcesList"></div>
                     </div>
 
-                    <!-- Action Items -->
-                    <div class="agent-item" id="actionItemsSection">
+                    <!-- Enhancement Ideas -->
+                    <div class="agent-item" id="practicalSection">
                         <span class="agent-label">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
-                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                                <path d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3h7zM7 9H4V5h3v4zm10 6h3v4h-3v-4zm0-10h3v4h-3V5z"/>
                             </svg>
-                            Actionable Steps:
+                            Enhancement Ideas:
                         </span>
-                        <div class="action-items-container" id="actionItemsList"></div>
+                        <div class="practical-content" id="practicalContent"></div>
                     </div>
 
-                    <!-- Related Questions -->
+                    <!-- Strategic Timeline -->
+                    <div class="agent-item" id="quickFactsSection">
+                        <span class="agent-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                            </svg>
+                            Strategic Timeline:
+                        </span>
+                        <div class="quick-facts-container" id="quickFactsList"></div>
+                    </div>
+
+                    <!-- Risk Considerations -->
+                    <div class="agent-item" id="nuancesSection">
+                        <span class="agent-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                            </svg>
+                            Risk Considerations:
+                        </span>
+                        <div class="nuances-container" id="nuancesList"></div>
+                    </div>
+
+                    <!-- Implementation Checklist -->
+                    <div class="agent-item" id="misconceptionsSection">
+                        <span class="agent-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                            Implementation Checklist:
+                        </span>
+                        <div class="misconceptions-container" id="misconceptionsList"></div>
+                    </div>
+
+                    <!-- Additional Considerations -->
+                    <div class="agent-item" id="expertSection">
+                        <span class="agent-label">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                            </svg>
+                            Additional Considerations:
+                        </span>
+                        <div class="expert-content" id="expertContent"></div>
+                    </div>
+
+                    <!-- Probing Questions -->
                     <div class="agent-item" id="relatedQuestionsSection">
                         <span class="agent-label">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
                                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
                             </svg>
-                            Follow-up Questions to Consider:
+                            Continue the Conversation:
                         </span>
                         <div class="related-questions-container" id="relatedQuestionsList"></div>
                     </div>
 
-                    <!-- Resources -->
-                    <div class="agent-item" id="resourcesSection">
-                        <span class="agent-label">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
-                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                    <!-- Action Buttons -->
+                    <div class="agent-actions">
+                        <button class="copy-agent-btn" id="copyAgentBtn" title="Copy entire response">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
                             </svg>
-                            Recommended Resources & Tools:
-                        </span>
-                        <div class="resources-container" id="resourcesList"></div>
+                            Copy Full Response
+                        </button>
+                        <button class="clear-history-btn" id="clearAgentHistory" title="Clear conversation history">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                            </svg>
+                            Clear History
+                        </button>
                     </div>
-
-                    <!-- Copy Agent Response -->
-                    <button class="copy-agent-btn" id="copyAgentBtn" title="Copy entire analysis">
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                        </svg>
-                        Copy Full Analysis
-                    </button>
                 </div>
             </div>
 
@@ -695,14 +773,46 @@
         <!-- API Key Modal -->
         <div class="modal" id="apiKeyModal">
             <div class="modal-content">
-                <h2>API Key Required</h2>
-                <p>To use this translator, you need an OpenRouter API key. Get one free at <a href="https://openrouter.ai" target="_blank">openrouter.ai</a></p>
-                <input type="password" id="apiKeyInput" placeholder="Enter your OpenRouter API key" class="api-key-input">
+                <h2>API Settings</h2>
+                
+                <div style="margin-top: 20px;">
+                    <label for="modelSelect" style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">Select Model</label>
+                    <select id="modelSelect" class="api-key-input" style="padding: 12px; cursor: pointer;">
+                        <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet (OpenRouter)</option>
+                        <option value="openai/gpt-3.5-turbo">GPT-3.5 Turbo (OpenAI - Free Tier)</option>
+                        <option value="openai/gpt-4o-mini">GPT-4o Mini (OpenAI - Requires Credits)</option>
+                        <option value="openai/gpt-4o">GPT-4o (OpenAI - Requires Credits)</option>
+                        <option value="openai/o1-preview">O1 Preview (OpenAI - Tier 5 Only)</option>
+                        <option value="openai/o1-mini">O1 Mini (OpenAI - Tier 5 Only)</option>
+                        <option value="deepseek/deepseek-chat">DeepSeek Chat (Direct)</option>
+                        <option value="deepseek/deepseek-reasoner">DeepSeek Reasoner (Direct)</option>
+                    </select>
+                    <p style="font-size: 12px; color: #6b7280; margin-top: 8px;">💡 Most free OpenAI accounts only have access to GPT-3.5 Turbo. Add payment method for other models.</p>
+                </div>
+                
+                <div id="openrouterKeySection" style="margin-top: 20px;">
+                    <label for="apiKeyInput" style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">OpenRouter API Key</label>
+                    <p style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Get one free at <a href="https://openrouter.ai" target="_blank" style="color: #3b82f6;">openrouter.ai</a></p>
+                    <input type="password" id="apiKeyInput" placeholder="Enter your OpenRouter API key" class="api-key-input">
+                </div>
+                
+                <div id="openaiKeySection" style="margin-top: 20px; display: none;">
+                    <label for="openaiKeyInput" style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">OpenAI API Key</label>
+                    <p style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Get your key at <a href="https://platform.openai.com/api-keys" target="_blank" style="color: #3b82f6;">platform.openai.com</a></p>
+                    <input type="password" id="openaiKeyInput" placeholder="Enter your OpenAI API key" class="api-key-input">
+                </div>
+                
+                <div id="deepseekKeySection" style="margin-top: 20px; display: none;">
+                    <label for="deepseekKeyInput" style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">DeepSeek API Key</label>
+                    <p style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Get your key at <a href="https://platform.deepseek.com" target="_blank" style="color: #3b82f6;">platform.deepseek.com</a></p>
+                    <input type="password" id="deepseekKeyInput" placeholder="Enter your DeepSeek API key" class="api-key-input">
+                </div>
+                
                 <div class="modal-buttons">
                     <button class="modal-btn secondary" id="cancelApiKey">Cancel</button>
-                    <button class="modal-btn primary" id="saveApiKey">Save Key</button>
+                    <button class="modal-btn primary" id="saveApiKey">Save Settings</button>
                 </div>
-                <p class="api-note">Your API key is stored locally in your browser and never sent to our servers.</p>
+                <p class="api-note">Your API keys and settings are stored locally in your browser and never sent to our servers.</p>
             </div>
         </div>
 

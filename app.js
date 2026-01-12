@@ -5,9 +5,41 @@
 
 class AfrikaansTranslator {
     constructor() {
-        this.apiKey = localStorage.getItem('openrouter_api_key') || '';
-        this.apiEndpoint = 'https://openrouter.ai/api/v1/chat/completions';
-        this.model = 'anthropic/claude-3.5-sonnet';
+        // Email signature (plain text version for email body)
+        this.emailSignaturePlainText = `Heinrich Nel
+General Manager Transport
+Matanuska
+
+Email: Heinrich@matanuska.co.za
+Web: matanuska.co.zw
+Phone: +27 66 273 1270`;
+        
+        // HTML signature for rich copy
+        this.emailSignatureHTML = `<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; width: 550px; padding: 20px; background-color: #ffffff; color: #002d8b;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2px;">
+        <div style="background-color: #002d8b; padding: 10px 25px; color: #ffbf00; font-family: 'Georgia', serif; font-size: 32px; font-weight: bold; line-height: 1;">Matanuska</div>
+        <div style="font-size: 20px; font-weight: bold; padding-bottom: 5px;">Heinrich Nel</div>
+    </div>
+    <div style="height: 3px; background-color: #ffbf00; width: 100%; margin-bottom: 10px;"></div>
+    <div style="display: flex; justify-content: space-between; font-size: 14px; line-height: 1.6;">
+        <div>
+            <a href="mailto:Heinrich@matanuska.co.za" style="color: #002d8b; text-decoration: none;">Heinrich@matanuska.co.za</a><br>
+            <a href="http://matanuska.co.zw" target="_blank" style="color: #002d8b; text-decoration: none;">matanuska.co.zw</a>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-style: italic;">General Manager Transport</div>
+            <div>+27 66 273 1270</div>
+        </div>
+    </div>
+</div>`;
+        
+        // API Keys
+        this.openrouterApiKey = localStorage.getItem('openrouter_api_key') || '';
+        this.openaiApiKey = localStorage.getItem('openai_api_key') || '';
+        this.deepseekApiKey = localStorage.getItem('deepseek_api_key') || '';
+        
+        // Model and endpoint will be set dynamically
+        this.model = localStorage.getItem('openrouter_model') || 'anthropic/claude-3.5-sonnet';
         
         // DOM Elements
         this.inputText = document.getElementById('inputText');
@@ -21,6 +53,12 @@ class AfrikaansTranslator {
         this.settingsBtn = document.getElementById('settingsBtn');
         this.apiKeyModal = document.getElementById('apiKeyModal');
         this.apiKeyInput = document.getElementById('apiKeyInput');
+        this.openaiKeyInput = document.getElementById('openaiKeyInput');
+        this.deepseekKeyInput = document.getElementById('deepseekKeyInput');
+        this.openrouterKeySection = document.getElementById('openrouterKeySection');
+        this.openaiKeySection = document.getElementById('openaiKeySection');
+        this.deepseekKeySection = document.getElementById('deepseekKeySection');
+        this.modelSelect = document.getElementById('modelSelect');
         this.saveApiKeyBtn = document.getElementById('saveApiKey');
         this.cancelApiKeyBtn = document.getElementById('cancelApiKey');
         this.recordingIndicator = document.getElementById('recordingIndicator');
@@ -159,14 +197,48 @@ class AfrikaansTranslator {
         this.resourcesList = document.getElementById('resourcesList');
         this.copyAgentBtn = document.getElementById('copyAgentBtn');
         
+        // Improved Version section elements
+        this.improvedVersionSection = document.getElementById('improvedVersionSection');
+        this.improvedVersionContent = document.getElementById('improvedVersionContent');
+        this.copyImprovedBtn = document.getElementById('copyImprovedBtn');
+        
+        // New enhanced AI Agent elements
+        this.confidenceSection = document.getElementById('agentConfidenceSection');
+        this.confidenceFillAgent = document.getElementById('confidenceFillAgent');
+        this.confidenceValueAgent = document.getElementById('confidenceValueAgent');
+        this.confidenceExplanation = document.getElementById('confidenceExplanation');
+        this.sourcesSection = document.getElementById('sourcesSection');
+        this.sourcesList = document.getElementById('sourcesList');
+        this.practicalSection = document.getElementById('practicalSection');
+        this.practicalContent = document.getElementById('practicalContent');
+        this.nuancesSection = document.getElementById('nuancesSection');
+        this.nuancesList = document.getElementById('nuancesList');
+        this.quickFactsSection = document.getElementById('quickFactsSection');
+        this.quickFactsList = document.getElementById('quickFactsList');
+        this.misconceptionsSection = document.getElementById('misconceptionsSection');
+        this.misconceptionsList = document.getElementById('misconceptionsList');
+        this.expertSection = document.getElementById('expertSection');
+        this.expertContent = document.getElementById('expertContent');
+        this.clearHistoryBtn = document.getElementById('clearAgentHistory');
+        
         // Current enhancement/email/agent data
         this.currentEnhancement = null;
         this.currentEmail = null;
         this.currentAgentResponse = null;
         
+        // Agent conversation history for context-aware responses
+        this.agentConversationHistory = JSON.parse(localStorage.getItem('agent_conversation_history') || '[]');
+        
         // Speech recognition
         this.recognition = null;
         this.isRecording = false;
+        
+        // Text-to-speech state - enhanced for multi-sentence processing
+        this.speechState = 'idle'; // 'idle', 'speaking', 'paused'
+        this.currentUtterance = null;
+        this.speechQueue = []; // Queue of sentences to speak
+        this.currentSentenceIndex = 0; // Track position for resume
+        this.speechPauseBetweenSentences = 400; // ms pause between sentences
         
         // Current translation data
         this.currentTranslation = null;
@@ -210,6 +282,7 @@ class AfrikaansTranslator {
         this.clearBtn.addEventListener('click', () => this.clearInput());
         this.copyBtn.addEventListener('click', () => this.copyTranslation());
         this.speakBtn.addEventListener('click', () => this.speakTranslation());
+        this.speakBtn.addEventListener('dblclick', () => this.stopSpeech()); // Double-click to stop completely
         this.micBtn.addEventListener('click', () => this.toggleSpeechRecognition());
         
         // Copy enhanced text
@@ -220,6 +293,11 @@ class AfrikaansTranslator {
         
         // Copy agent response
         this.copyAgentBtn.addEventListener('click', () => this.copyAgentResponse());
+        
+        // Clear agent history
+        if (this.clearHistoryBtn) {
+            this.clearHistoryBtn.addEventListener('click', () => this.clearAgentHistory());
+        }
         
         // Settings
         this.settingsBtn.addEventListener('click', () => this.showModal());
@@ -237,6 +315,9 @@ class AfrikaansTranslator {
                 this.saveApiKey();
             }
         });
+        
+        // Model selection change to toggle API key sections
+        this.modelSelect.addEventListener('change', () => this.updateApiKeyVisibility());
         
         // Feedback
         this.feedbackGood.addEventListener('click', () => this.submitFeedback('good'));
@@ -298,11 +379,11 @@ class AfrikaansTranslator {
             this.hideEnhancement();
             this.hideAgent();
         } else if (mode === 'agent') {
-            this.inputLabel.textContent = 'Your Question / Context';
-            this.outputLabel.textContent = 'AI Analysis';
-            this.inputText.placeholder = "Ask a question or provide context for AI analysis...\n\nExamples:\n• Help me with budget strategy ideas for 2026\n• Analyze this business plan and expand on it\n• What are the key considerations for fleet optimization?\n• Expand on these points: [paste your notes]";
-            document.querySelector('.translate-btn .btn-text').textContent = 'Ask AI Agent';
-            this.outputArea.innerHTML = '<div class="placeholder-text">AI analysis will appear here...</div>';
+            this.inputLabel.textContent = 'Enter Your Idea or Question';
+            this.outputLabel.textContent = 'Strategic Analysis';
+            this.inputText.placeholder = "Describe your business idea, strategy, or question for strategic analysis...\n\nExamples:\n• Enhanced Availability: Increase service coverage by expanding the fleet with 10 additional vehicles...\n• Launch a subscription model for our SaaS product with tiered pricing...\n• Implement an AI-powered customer support system to reduce response times...\n• Open a second location to capture the growing suburban market demand...";
+            document.querySelector('.translate-btn .btn-text').textContent = 'Analyze';
+            this.outputArea.innerHTML = '<div class="placeholder-text">Strategic analysis with enhancement ideas and follow-up questions will appear here...</div>';
             // Hide other sections
             this.enhancementSection.classList.remove('visible');
             this.emailSection.classList.remove('visible');
@@ -405,6 +486,8 @@ class AfrikaansTranslator {
         this.inputText.value = '';
         this.updateCharCount();
         this.inputText.focus();
+        // Stop any ongoing speech
+        this.stopSpeech();
     }
     
     async copyTranslation() {
@@ -428,23 +511,334 @@ class AfrikaansTranslator {
         }
         
         if ('speechSynthesis' in window) {
-            // Cancel any ongoing speech
-            window.speechSynthesis.cancel();
+            const synth = window.speechSynthesis;
             
-            const utterance = new SpeechSynthesisUtterance(this.currentTranslation.translation);
-            utterance.lang = 'en-US';
-            utterance.rate = 0.9;
-            
-            window.speechSynthesis.speak(utterance);
+            // Handle different states
+            if (this.speechState === 'speaking') {
+                // Currently speaking - pause it
+                synth.pause();
+                this.speechState = 'paused';
+                this.updateSpeakButtonIcon('paused');
+                this.showToast('Speech paused. Click to resume.', 'info');
+            } else if (this.speechState === 'paused') {
+                // Currently paused - resume it
+                synth.resume();
+                this.speechState = 'speaking';
+                this.updateSpeakButtonIcon('speaking');
+                this.showToast('Speech resumed.', 'info');
+            } else {
+                // Idle - start new speech with sentence processing
+                synth.cancel();
+                
+                // Split text into sentences for better processing
+                this.speechQueue = this.splitIntoSentences(this.currentTranslation.translation);
+                this.currentSentenceIndex = 0;
+                
+                if (this.speechQueue.length === 0) {
+                    this.showToast('No text to speak.', 'error');
+                    return;
+                }
+                
+                this.speechState = 'speaking';
+                this.updateSpeakButtonIcon('speaking');
+                this.speakNextSentence();
+            }
         } else {
             this.showToast('Text-to-speech is not supported in your browser.', 'error');
         }
     }
     
+    /**
+     * Split text into sentences with intelligent handling of:
+     * - Standard punctuation (. ! ?)
+     * - Afrikaans abbreviations (mnr., mev., dr., prof., etc.)
+     * - Numbers with decimals (3.14, R100.50)
+     * - Ellipsis (...)
+     * - Quoted speech
+     * - Multiple punctuation marks
+     */
+    splitIntoSentences(text) {
+        if (!text || typeof text !== 'string') return [];
+        
+        // Afrikaans and common abbreviations that shouldn't split sentences
+        const abbreviations = [
+            'mnr', 'mev', 'mej', 'dr', 'prof', 'ds', 'adv', 'me', 'sr', 'jr',
+            'mr', 'mrs', 'ms', 'dr', 'prof', 'rev', 'hon', 'gen', 'col', 'lt',
+            'st', 'vs', 'etc', 'eg', 'ie', 'no', 'nr', 'tel', 'fax', 'ref',
+            'dept', 'govt', 'corp', 'inc', 'ltd', 'co', 'bpk', 'edms', 'pty'
+        ];
+        
+        // Create regex pattern for abbreviations
+        const abbrPattern = abbreviations.join('|');
+        
+        // Protect abbreviations by replacing periods temporarily
+        let processed = text;
+        const protectedItems = [];
+        let protectIndex = 0;
+        
+        // Protect abbreviations (case insensitive)
+        const abbrRegex = new RegExp(`\\b(${abbrPattern})\\.`, 'gi');
+        processed = processed.replace(abbrRegex, (match) => {
+            const placeholder = `__ABBR${protectIndex}__`;
+            protectedItems.push({ placeholder, original: match });
+            protectIndex++;
+            return placeholder;
+        });
+        
+        // Protect numbers with decimals (e.g., 3.14, R100.50, $99.99)
+        processed = processed.replace(/(\d+)\.(\d+)/g, (match) => {
+            const placeholder = `__NUM${protectIndex}__`;
+            protectedItems.push({ placeholder, original: match });
+            protectIndex++;
+            return placeholder;
+        });
+        
+        // Protect ellipsis
+        processed = processed.replace(/\.{3,}/g, (match) => {
+            const placeholder = `__ELL${protectIndex}__`;
+            protectedItems.push({ placeholder, original: match });
+            protectIndex++;
+            return placeholder;
+        });
+        
+        // Protect email addresses and URLs
+        processed = processed.replace(/\S+@\S+\.\S+/g, (match) => {
+            const placeholder = `__EMAIL${protectIndex}__`;
+            protectedItems.push({ placeholder, original: match });
+            protectIndex++;
+            return placeholder;
+        });
+        
+        processed = processed.replace(/https?:\/\/[^\s]+/g, (match) => {
+            const placeholder = `__URL${protectIndex}__`;
+            protectedItems.push({ placeholder, original: match });
+            protectIndex++;
+            return placeholder;
+        });
+        
+        // Split on sentence-ending punctuation followed by space and capital letter or end
+        // Also handle multiple punctuation (e.g., "What?!" or "Wow!!!")
+        const sentenceEnders = /([.!?]+)(\s+|$)/g;
+        const rawSentences = processed.split(sentenceEnders);
+        
+        // Reconstruct sentences (split creates groups)
+        const sentences = [];
+        let currentSentence = '';
+        
+        for (let i = 0; i < rawSentences.length; i++) {
+            const part = rawSentences[i];
+            if (!part) continue;
+            
+            // Check if this part is punctuation
+            if (/^[.!?]+$/.test(part)) {
+                currentSentence += part;
+            } else if (/^\s+$/.test(part)) {
+                // Whitespace after punctuation - sentence complete
+                if (currentSentence.trim()) {
+                    sentences.push(currentSentence.trim());
+                    currentSentence = '';
+                }
+            } else {
+                currentSentence += part;
+            }
+        }
+        
+        // Don't forget the last sentence
+        if (currentSentence.trim()) {
+            sentences.push(currentSentence.trim());
+        }
+        
+        // Restore protected items in all sentences
+        const restoredSentences = sentences.map(sentence => {
+            let restored = sentence;
+            protectedItems.forEach(item => {
+                restored = restored.replace(item.placeholder, item.original);
+            });
+            return restored;
+        });
+        
+        // Filter out empty sentences and very short fragments
+        return restoredSentences.filter(s => s && s.length > 1);
+    }
+    
+    /**
+     * Speak the next sentence in the queue with natural pacing
+     */
+    speakNextSentence() {
+        const synth = window.speechSynthesis;
+        
+        // Check if we've been stopped or completed
+        if (this.speechState === 'idle' || this.currentSentenceIndex >= this.speechQueue.length) {
+            this.completeSpeech();
+            return;
+        }
+        
+        const sentence = this.speechQueue[this.currentSentenceIndex];
+        const utterance = new SpeechSynthesisUtterance(sentence);
+        
+        // Configure voice settings for natural speech
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9; // Slightly slower for clarity
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        
+        // Try to select a high-quality voice
+        const voices = synth.getVoices();
+        const preferredVoice = voices.find(v => 
+            v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Microsoft') || v.name.includes('Natural'))
+        ) || voices.find(v => v.lang.startsWith('en'));
+        
+        if (preferredVoice) {
+            utterance.voice = preferredVoice;
+        }
+        
+        // Handle sentence completion
+        utterance.onend = () => {
+            if (this.speechState !== 'idle') {
+                this.currentSentenceIndex++;
+                
+                // Add natural pause between sentences
+                if (this.currentSentenceIndex < this.speechQueue.length) {
+                    setTimeout(() => {
+                        if (this.speechState === 'speaking') {
+                            this.speakNextSentence();
+                        }
+                    }, this.getPauseDuration(sentence));
+                } else {
+                    this.completeSpeech();
+                }
+            }
+        };
+        
+        // Handle errors
+        utterance.onerror = (event) => {
+            if (event.error !== 'interrupted' && event.error !== 'canceled') {
+                console.error('Speech synthesis error:', event.error);
+                // Try to continue with next sentence
+                this.currentSentenceIndex++;
+                if (this.currentSentenceIndex < this.speechQueue.length && this.speechState === 'speaking') {
+                    setTimeout(() => this.speakNextSentence(), 100);
+                } else {
+                    this.completeSpeech();
+                }
+            }
+        };
+        
+        this.currentUtterance = utterance;
+        synth.speak(utterance);
+    }
+    
+    /**
+     * Calculate appropriate pause duration based on sentence characteristics
+     */
+    getPauseDuration(sentence) {
+        let pause = this.speechPauseBetweenSentences;
+        
+        // Longer pause after questions
+        if (sentence.endsWith('?')) {
+            pause += 150;
+        }
+        
+        // Longer pause after exclamations
+        if (sentence.endsWith('!')) {
+            pause += 100;
+        }
+        
+        // Longer pause after longer sentences
+        if (sentence.length > 100) {
+            pause += 150;
+        }
+        
+        // Shorter pause for very short sentences
+        if (sentence.length < 30) {
+            pause -= 100;
+        }
+        
+        // Ensure minimum pause
+        return Math.max(pause, 200);
+    }
+    
+    /**
+     * Complete the speech and reset state
+     */
+    completeSpeech() {
+        this.speechState = 'idle';
+        this.currentUtterance = null;
+        this.speechQueue = [];
+        this.currentSentenceIndex = 0;
+        this.updateSpeakButtonIcon('idle');
+    }
+
+    updateSpeakButtonIcon(state) {
+        const speakBtn = this.speakBtn;
+        if (!speakBtn) return;
+        
+        let iconPath;
+        let title;
+        
+        // Remove all state classes
+        speakBtn.classList.remove('speaking', 'paused');
+        
+        switch (state) {
+            case 'speaking':
+                // Pause icon
+                iconPath = 'M6 19h4V5H6v14zm8-14v14h4V5h-4z';
+                title = 'Pause speech';
+                speakBtn.classList.add('speaking');
+                break;
+            case 'paused':
+                // Play/Resume icon
+                iconPath = 'M8 5v14l11-7z';
+                title = 'Resume speech';
+                speakBtn.classList.add('paused');
+                break;
+            default:
+                // Speaker icon (idle)
+                iconPath = 'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z';
+                title = 'Listen to translation';
+        }
+        
+        speakBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="${iconPath}" fill="currentColor"/></svg>`;
+        speakBtn.title = title;
+    }
+    
+    stopSpeech() {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            this.speechState = 'idle';
+            this.currentUtterance = null;
+            this.speechQueue = [];
+            this.currentSentenceIndex = 0;
+            this.updateSpeakButtonIcon('idle');
+        }
+    }
+    
     showModal() {
-        this.apiKeyInput.value = this.apiKey;
+        this.apiKeyInput.value = this.openrouterApiKey;
+        this.openaiKeyInput.value = this.openaiApiKey;
+        this.deepseekKeyInput.value = this.deepseekApiKey;
+        this.modelSelect.value = this.model;
+        this.updateApiKeyVisibility();
         this.apiKeyModal.classList.add('visible');
         this.apiKeyInput.focus();
+    }
+    
+    updateApiKeyVisibility() {
+        const model = this.modelSelect.value;
+        
+        // Hide all sections first
+        this.openrouterKeySection.style.display = 'none';
+        this.openaiKeySection.style.display = 'none';
+        this.deepseekKeySection.style.display = 'none';
+        
+        // Show relevant section based on model
+        if (model.startsWith('openai/')) {
+            this.openaiKeySection.style.display = 'block';
+        } else if (model.startsWith('deepseek/')) {
+            this.deepseekKeySection.style.display = 'block';
+        } else {
+            this.openrouterKeySection.style.display = 'block';
+        }
     }
     
     hideModal() {
@@ -452,16 +846,113 @@ class AfrikaansTranslator {
     }
     
     saveApiKey() {
-        const key = this.apiKeyInput.value.trim();
-        if (!key) {
-            this.showToast('Please enter a valid API key.', 'error');
+        this.model = this.modelSelect.value;
+        
+        // Save all API keys
+        const openrouterKey = this.apiKeyInput.value.trim();
+        const openaiKey = this.openaiKeyInput.value.trim();
+        const deepseekKey = this.deepseekKeyInput.value.trim();
+        
+        // Validate that the required key for selected model is provided
+        if (this.model.startsWith('openai/') && !openaiKey) {
+            this.showToast('Please enter your OpenAI API key.', 'error');
+            return;
+        }
+        if (this.model.startsWith('deepseek/') && !deepseekKey) {
+            this.showToast('Please enter your DeepSeek API key.', 'error');
+            return;
+        }
+        if (this.model.startsWith('anthropic/') && !openrouterKey) {
+            this.showToast('Please enter your OpenRouter API key.', 'error');
             return;
         }
         
-        this.apiKey = key;
-        localStorage.setItem('openrouter_api_key', key);
+        this.openrouterApiKey = openrouterKey;
+        this.openaiApiKey = openaiKey;
+        this.deepseekApiKey = deepseekKey;
+        
+        localStorage.setItem('openrouter_api_key', openrouterKey);
+        localStorage.setItem('openai_api_key', openaiKey);
+        localStorage.setItem('deepseek_api_key', deepseekKey);
+        localStorage.setItem('openrouter_model', this.model);
+        
         this.hideModal();
-        this.showToast('API key saved successfully!', 'success');
+        this.showToast('Settings saved successfully!', 'success');
+    }
+    
+    getApiConfig() {
+        const model = this.model;
+        
+        if (model.startsWith('openai/')) {
+            // OpenAI direct API
+            const modelName = model.replace('openai/', '');
+            
+            // Check if it's an O1 model which has special requirements
+            const isO1Model = modelName.startsWith('o1');
+            
+            return {
+                endpoint: 'https://api.openai.com/v1/chat/completions',
+                apiKey: this.openaiApiKey,
+                model: modelName,
+                isO1Model: isO1Model,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.openaiApiKey}`
+                }
+            };
+        } else if (model.startsWith('deepseek/')) {
+            // DeepSeek direct API
+            const modelName = model.replace('deepseek/', '');
+            return {
+                endpoint: 'https://api.deepseek.com/v1/chat/completions',
+                apiKey: this.deepseekApiKey,
+                model: modelName,
+                isO1Model: false,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.deepseekApiKey}`
+                }
+            };
+        } else {
+            // OpenRouter API
+            return {
+                endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+                apiKey: this.openrouterApiKey,
+                model: model,
+                isO1Model: false,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.openrouterApiKey}`,
+                    'HTTP-Referer': window.location.origin,
+                    'X-Title': 'Afrikaans to English Translator'
+                }
+            };
+        }
+    }
+    
+    async handleApiError(response, apiConfig) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('API Error:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData,
+            model: apiConfig.model,
+            endpoint: apiConfig.endpoint,
+            isO1Model: apiConfig.isO1Model
+        });
+        
+        if (response.status === 401) {
+            throw new Error('Invalid API key. Please check your API key in settings.');
+        } else if (response.status === 429) {
+            throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+        } else if (response.status === 400) {
+            const errorMsg = errorData.error?.message || 'Bad request. Model may not exist or parameters invalid.';
+            throw new Error(errorMsg);
+        } else if (response.status === 404) {
+            throw new Error('Model not found. The model name may be incorrect.');
+        } else {
+            throw new Error(errorData.error?.message || `API error: ${response.status} - ${response.statusText}`);
+        }
     }
     
     async translate() {
@@ -472,7 +963,12 @@ class AfrikaansTranslator {
             return;
         }
         
-        if (!this.apiKey) {
+        // Stop any ongoing speech before starting new translation
+        this.stopSpeech();
+        
+        // Validate API key for selected model
+        const apiConfig = this.getApiConfig();
+        if (!apiConfig.apiKey) {
             this.showModal();
             return;
         }
@@ -693,37 +1189,41 @@ Example domains to detect and analyze:
 
 Always respond with valid JSON only, no additional text.`;
 
-        const response = await fetch(this.apiEndpoint, {
+        const apiConfig = this.getApiConfig();
+        
+        // O1 models don't support system messages, so we need to combine them into user message
+        const messages = apiConfig.isO1Model 
+            ? [{ role: 'user', content: `${systemPrompt}\n\n---\n\nTranslate the following Afrikaans text to English, provide comprehensive linguistic analysis, AND analyze the content's domain to provide intelligent insights, strategic recommendations, and alternative approaches:\n\n"${text}"` }]
+            : [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: `Translate the following Afrikaans text to English, provide comprehensive linguistic analysis, AND analyze the content's domain to provide intelligent insights, strategic recommendations, and alternative approaches:\n\n"${text}"` }
+            ];
+        
+        const requestBody = {
+            model: apiConfig.model,
+            messages: messages,
+            max_tokens: 4000
+        };
+        
+        // O1 models don't support temperature parameter
+        if (!apiConfig.isO1Model) {
+            requestBody.temperature = 0.3;
+        }
+        
+        console.log('Translation API Call:', { endpoint: apiConfig.endpoint, model: apiConfig.model, isO1: apiConfig.isO1Model });
+        
+        const response = await fetch(apiConfig.endpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.apiKey}`,
-                'HTTP-Referer': window.location.origin,
-                'X-Title': 'Afrikaans to English Translator'
-            },
-            body: JSON.stringify({
-                model: this.model,
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: `Translate the following Afrikaans text to English, provide comprehensive linguistic analysis, AND analyze the content's domain to provide intelligent insights, strategic recommendations, and alternative approaches:\n\n"${text}"` }
-                ],
-                temperature: 0.3,
-                max_tokens: 4000
-            })
+            headers: apiConfig.headers,
+            body: JSON.stringify(requestBody)
         });
         
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            if (response.status === 401) {
-                throw new Error('Invalid API key. Please check your OpenRouter API key.');
-            } else if (response.status === 429) {
-                throw new Error('Rate limit exceeded. Please wait a moment and try again.');
-            } else {
-                throw new Error(errorData.error?.message || `API error: ${response.status}`);
-            }
+            await this.handleApiError(response, apiConfig);
         }
         
         const data = await response.json();
+        console.log('Translation Response OK');
         const content = data.choices[0]?.message?.content;
         
         if (!content) {
@@ -1250,7 +1750,9 @@ Always respond with valid JSON only, no additional text.`;
             return;
         }
         
-        if (!this.apiKey) {
+        // Validate API key for selected model
+        const apiConfig = this.getApiConfig();
+        if (!apiConfig.apiKey) {
             this.showModal();
             return;
         }
@@ -1358,23 +1860,29 @@ Types of additions to suggest:
 
 Always respond with valid JSON only, no additional text.`;
 
-        const response = await fetch(this.apiEndpoint, {
+        const apiConfig = this.getApiConfig();
+        
+        const messages = apiConfig.isO1Model 
+            ? [{ role: 'user', content: `${systemPrompt}\n\n---\n\nPlease enhance the following text. Provide improved sentence structure, suggestions for additions, and ideas to enhance the information:\n\n"${text}"` }]
+            : [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: `Please enhance the following text. Provide improved sentence structure, suggestions for additions, and ideas to enhance the information:\n\n"${text}"` }
+            ];
+        
+        const requestBody = {
+            model: apiConfig.model,
+            messages: messages,
+            max_tokens: 4000
+        };
+        
+        if (!apiConfig.isO1Model) {
+            requestBody.temperature = 0.4;
+        }
+        
+        const response = await fetch(apiConfig.endpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.apiKey}`,
-                'HTTP-Referer': window.location.origin,
-                'X-Title': 'Text Enhancement Tool'
-            },
-            body: JSON.stringify({
-                model: this.model,
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: `Please enhance the following text. Provide improved sentence structure, suggestions for additions, and ideas to enhance the information:\n\n"${text}"` }
-                ],
-                temperature: 0.4,
-                max_tokens: 4000
-            })
+            headers: apiConfig.headers,
+            body: JSON.stringify(requestBody)
         });
         
         if (!response.ok) {
@@ -1548,7 +2056,9 @@ Always respond with valid JSON only, no additional text.`;
             return;
         }
         
-        if (!this.apiKey) {
+        // Validate API key for selected model
+        const apiConfig = this.getApiConfig();
+        if (!apiConfig.apiKey) {
             this.showModal();
             return;
         }
@@ -1642,23 +2152,29 @@ Closing
 
 Always respond with valid JSON only, no additional text.`;
 
-        const response = await fetch(this.apiEndpoint, {
+        const apiConfig = this.getApiConfig();
+        
+        const messages = apiConfig.isO1Model 
+            ? [{ role: 'user', content: `${systemPrompt}\n\n---\n\nTranslate the following Afrikaans email text to English and format it as a professional email ready for copy-pasting:\n\n"${text}"` }]
+            : [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: `Translate the following Afrikaans email text to English and format it as a professional email ready for copy-pasting:\n\n"${text}"` }
+            ];
+        
+        const requestBody = {
+            model: apiConfig.model,
+            messages: messages,
+            max_tokens: 3000
+        };
+        
+        if (!apiConfig.isO1Model) {
+            requestBody.temperature = 0.3;
+        }
+        
+        const response = await fetch(apiConfig.endpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.apiKey}`,
-                'HTTP-Referer': window.location.origin,
-                'X-Title': 'Email Translation Tool'
-            },
-            body: JSON.stringify({
-                model: this.model,
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: `Translate the following Afrikaans email text to English and format it as a professional email ready for copy-pasting:\n\n"${text}"` }
-                ],
-                temperature: 0.3,
-                max_tokens: 3000
-            })
+            headers: apiConfig.headers,
+            body: JSON.stringify(requestBody)
         });
         
         if (!response.ok) {
@@ -1705,8 +2221,11 @@ Always respond with valid JSON only, no additional text.`;
     displayEmailTranslation(result) {
         this.currentEmail = result;
         
-        // Format the full email for display
-        const formattedEmail = result.fullEmail || `${result.greeting}\n\n${result.body}\n\n${result.closing}\n${result.signature}`;
+        // Override the signature with Heinrich's signature
+        this.currentEmail.signature = this.emailSignaturePlainText;
+        
+        // Format the full email for display with the proper signature
+        const formattedEmail = `${result.greeting}\n\n${result.body}\n\n${result.closing}\n\n${this.emailSignaturePlainText}`;
         
         // Display in output area
         this.outputArea.innerHTML = `<div class="translation-text" style="white-space: pre-wrap;">${this.escapeHtml(formattedEmail)}</div>`;
@@ -1833,7 +2352,7 @@ Always respond with valid JSON only, no additional text.`;
             if (selectedClosing) closing = selectedClosing.dataset.closing;
         }
         
-        const updatedEmail = `${greeting}\n\n${this.currentEmail.body}\n\n${closing}\n${this.currentEmail.signature}`;
+        const updatedEmail = `${greeting}\n\n${this.currentEmail.body}\n\n${closing}\n\n${this.emailSignaturePlainText}`;
         this.emailPreview.innerHTML = this.escapeHtml(updatedEmail);
         this.outputArea.innerHTML = `<div class="translation-text" style="white-space: pre-wrap;">${this.escapeHtml(updatedEmail)}</div>`;
     }
@@ -1857,7 +2376,9 @@ Always respond with valid JSON only, no additional text.`;
             return;
         }
         
-        if (!this.apiKey) {
+        // Validate API key for selected model
+        const apiConfig = this.getApiConfig();
+        if (!apiConfig.apiKey) {
             this.showModal();
             return;
         }
@@ -1883,118 +2404,175 @@ Always respond with valid JSON only, no additional text.`;
     }
     
     async callAgentAPI(text) {
-        const systemPrompt = `You are an expert AI business strategist and analyst assistant. Your role is to analyze questions, contexts, and data provided by the user and deliver comprehensive, actionable insights.
+        // Build conversation history context
+        const historyContext = this.agentConversationHistory.length > 0 
+            ? `\n\nPrevious conversation context:\n${this.agentConversationHistory.slice(-5).map((h, i) => `Q${i+1}: ${h.question}\nA${i+1}: ${h.summary}`).join('\n\n')}\n\n---\nContinuing the conversation:`
+            : '';
+        
+        const systemPrompt = `You are an expert AI Strategic Advisor. Your role is to analyze input, provide strategic insights, and most importantly provide an IMPROVED VERSION of the content that can be copied and used directly.
 
-Your expertise spans:
-- Business Strategy & Planning
-- Budget & Financial Analysis
-- Operations & Process Optimization
-- Market Analysis & Competitive Intelligence
-- Project Management & Implementation
-- Risk Assessment & Mitigation
-- Innovation & Growth Strategies
-- Team & Resource Management
+CORE PRINCIPLES:
+1. IMPROVED VERSION FIRST: Always provide an enhanced, polished version of the input that can be copy-pasted
+2. STRUCTURED RESPONSES: Organize analysis under clear headings with bullet points
+3. STRATEGIC THINKING: Analyze from multiple angles - operational, financial, customer, competitive
+4. ACTIONABLE INSIGHTS: Every suggestion should be implementable
+5. CONTINUOUS DIALOGUE: End with questions users can ask AND suggested questions about the content
 
-When responding to user queries, provide a comprehensive JSON response:
+RESPONSE FORMAT - Always use this exact JSON structure:
 {
-    "summary": "A clear, concise summary answering the user's question or analyzing their context (2-3 paragraphs)",
+    "summary": "A 2-3 sentence executive summary of your analysis",
     
-    "keyInsights": [
-        "Key insight or finding #1 - specific and actionable",
-        "Key insight or finding #2 - with supporting rationale",
-        "Key insight or finding #3 - practical and implementable",
-        "Key insight or finding #4 - strategic perspective"
-    ],
+    "improvedVersion": {
+        "title": "Enhanced/Improved Version",
+        "content": "The complete improved version of their content. This should be a polished, enhanced version that incorporates your suggestions and can be directly copied and used. Format it professionally with proper headings and bullet points using markdown. Make it comprehensive and ready-to-use."
+    },
     
-    "expandedIdeas": [
+    "strategicAnalysis": {
+        "strengths": [
+            "• Strength point 1 with explanation",
+            "• Strength point 2 with explanation"
+        ],
+        "gaps": [
+            "• Gap or weakness 1 - what's missing",
+            "• Gap or weakness 2 - potential risk"
+        ],
+        "opportunities": [
+            "• Opportunity 1 - how to capitalize",
+            "• Opportunity 2 - growth potential"
+        ]
+    },
+    
+    "enhancementIdeas": [
         {
-            "title": "Strategic Idea Title",
-            "description": "Detailed expansion of this idea with specific implementation guidance",
+            "heading": "Clear Heading for Enhancement Area",
+            "points": [
+                "• Specific improvement suggestion 1",
+                "• Specific improvement suggestion 2",
+                "• Implementation consideration"
+            ],
             "impact": "high|medium|low",
-            "effort": "high|medium|low",
-            "timeline": "short-term (1-3 months)|medium-term (3-6 months)|long-term (6-12 months)",
-            "keyActions": ["Action 1", "Action 2", "Action 3"]
+            "effort": "high|medium|low"
         }
     ],
     
-    "actionItems": [
+    "strategicFramework": {
+        "shortTerm": [
+            "• Quick win action 1 (0-3 months)",
+            "• Quick win action 2"
+        ],
+        "mediumTerm": [
+            "• Strategic initiative 1 (3-6 months)",
+            "• Strategic initiative 2"
+        ],
+        "longTerm": [
+            "• Transformational goal 1 (6-12+ months)",
+            "• Transformational goal 2"
+        ]
+    },
+    
+    "keyMetrics": [
         {
-            "priority": 1,
-            "task": "Specific actionable task",
-            "details": "Detailed explanation of what needs to be done",
-            "owner": "Suggested responsibility (e.g., Finance Team, Management)",
-            "deadline": "Suggested timeframe"
+            "metric": "KPI name",
+            "target": "Suggested target",
+            "rationale": "Why this matters"
         }
     ],
     
-    "followUpQuestions": [
-        "Strategic question to explore further",
-        "Question to deepen analysis",
-        "Question to consider alternatives"
-    ],
-    
-    "resources": [
+    "riskConsiderations": [
         {
-            "type": "Framework|Tool|Template|Methodology|Best Practice",
-            "name": "Resource name",
-            "description": "How this resource can help",
-            "application": "How to apply it to the current context"
+            "risk": "Potential risk",
+            "mitigation": "How to address it",
+            "severity": "high|medium|low"
         }
     ],
     
-    "risks": [
+    "implementationChecklist": [
+        "☐ Action item 1 - with owner suggestion",
+        "☐ Action item 2 - with timeline",
+        "☐ Action item 3 - with dependencies"
+    ],
+    
+    "suggestedQuestions": [
         {
-            "risk": "Potential risk or challenge",
-            "mitigation": "How to mitigate or address it"
+            "question": "Question user can ask to explore deeper",
+            "purpose": "What asking this would reveal",
+            "category": "operational|financial|customer|competitive|growth|clarification"
+        },
+        {
+            "question": "Question about specific aspect of the content",
+            "purpose": "Why this is worth exploring",
+            "category": "operational|financial|customer|competitive|growth|clarification"
+        },
+        {
+            "question": "Question to challenge or refine the strategy",
+            "purpose": "How this helps improve the thinking",
+            "category": "operational|financial|customer|competitive|growth|clarification"
+        },
+        {
+            "question": "Question about implementation or next steps",
+            "purpose": "Practical value of this question",
+            "category": "operational|financial|customer|competitive|growth|clarification"
+        },
+        {
+            "question": "Question about measuring success",
+            "purpose": "Importance of metrics/tracking",
+            "category": "operational|financial|customer|competitive|growth|clarification"
         }
     ],
     
-    "metrics": [
-        {
-            "kpi": "Key Performance Indicator name",
-            "target": "Suggested target value",
-            "rationale": "Why this metric matters"
-        }
-    ]
+    "additionalConsiderations": [
+        "• Important factor not mentioned in original input",
+        "• Industry trend to consider",
+        "• Stakeholder perspective to account for"
+    ],
+    
+    "confidence": {
+        "level": "high|medium|low",
+        "score": 0.0-1.0,
+        "explanation": "Basis for confidence level"
+    }
 }
 
-Guidelines for Budget Strategy Analysis:
-1. Focus on practical, implementable recommendations
-2. Consider both short-term quick wins and long-term strategic initiatives
-3. Provide specific numbers, percentages, and benchmarks where applicable
-4. Address resource allocation and prioritization
-5. Include risk considerations and contingency planning
-6. Suggest measurement frameworks and success criteria
-7. Consider stakeholder perspectives and change management
-8. Reference industry best practices and proven methodologies
+IMPROVED VERSION GUIDELINES:
+1. Make it comprehensive and complete - user should be able to copy and use directly
+2. Incorporate the enhancements you suggest into the improved version
+3. Use professional formatting with clear headings and bullet points
+4. Expand on brief points to make them more impactful
+5. Add any missing elements that would strengthen the content
+6. Keep the original intent while elevating the quality
 
-For any question or context, always:
-- Break down complex topics into manageable components
-- Provide specific examples and case scenarios
-- Offer multiple strategic options with pros/cons
-- Include implementation roadmaps where applicable
-- Highlight critical success factors
-- Address potential obstacles proactively
+SUGGESTED QUESTIONS MUST:
+- Be directly relevant to the content provided
+- Help user think deeper about their strategy
+- Include questions they might not have thought to ask
+- Cover different aspects: implementation, measurement, risks, alternatives
+- Be phrased in first person ("How can I..." "What should I consider...")
 
 Always respond with valid JSON only, no additional text.`;
 
-        const response = await fetch(this.apiEndpoint, {
+        const apiConfig = this.getApiConfig();
+        
+        const messages = apiConfig.isO1Model 
+            ? [{ role: 'user', content: `${systemPrompt}\n\n---\n\n${historyContext}Analyze the following input strategically. Provide structured improvement ideas under clear headings with bullet points. Then ask probing questions to continue exploring this topic:\n\n"${text}"` }]
+            : [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: `${historyContext}Analyze the following input strategically. Provide structured improvement ideas under clear headings with bullet points. Then ask probing questions to continue exploring this topic:\n\n"${text}"` }
+            ];
+        
+        const requestBody = {
+            model: apiConfig.model,
+            messages: messages,
+            max_tokens: 6000
+        };
+        
+        if (!apiConfig.isO1Model) {
+            requestBody.temperature = 0.4;
+        }
+        
+        const response = await fetch(apiConfig.endpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.apiKey}`,
-                'HTTP-Referer': window.location.origin,
-                'X-Title': 'AI Strategy Agent'
-            },
-            body: JSON.stringify({
-                model: this.model,
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: `Please analyze the following question/context and provide comprehensive strategic insights, expanded ideas, and actionable recommendations:\n\n"${text}"` }
-                ],
-                temperature: 0.5,
-                max_tokens: 6000
-            })
+            headers: apiConfig.headers,
+            body: JSON.stringify(requestBody)
         });
         
         if (!response.ok) {
@@ -2030,113 +2608,356 @@ Always respond with valid JSON only, no additional text.`;
     displayAgentResponse(result) {
         this.currentAgentResponse = result;
         
+        // Save to conversation history
+        const historyEntry = {
+            question: this.inputText.value.trim(),
+            summary: result.summary || '',
+            timestamp: new Date().toISOString()
+        };
+        this.agentConversationHistory.push(historyEntry);
+        if (this.agentConversationHistory.length > 10) {
+            this.agentConversationHistory = this.agentConversationHistory.slice(-10);
+        }
+        localStorage.setItem('agent_conversation_history', JSON.stringify(this.agentConversationHistory));
+        
         // Display summary in output area
         if (result.summary) {
-            this.outputArea.innerHTML = `<div class="translation-text" style="white-space: pre-wrap; line-height: 1.6;">${this.escapeHtml(result.summary)}</div>`;
+            this.outputArea.innerHTML = `
+                <div class="translation-text" style="white-space: pre-wrap; line-height: 1.6;">
+                    <div class="direct-answer">${this.escapeHtml(result.summary)}</div>
+                    ${result.confidence ? `
+                        <div class="inline-confidence ${result.confidence.level}">
+                            <span class="confidence-indicator"></span>
+                            <span>${Math.round(result.confidence.score * 100)}% confidence</span>
+                        </div>
+                    ` : ''}
+                </div>`;
         }
         
         // Show agent section
         this.agentSection.classList.add('visible');
         
-        // Display answer/summary
+        // Display summary/answer
         if (result.summary) {
             this.answerSection.classList.add('visible');
-            this.agentAnswer.innerHTML = `<div style="line-height: 1.7;">${this.escapeHtml(result.summary)}</div>`;
+            this.agentAnswer.innerHTML = `<div class="direct-answer-main">${this.escapeHtml(result.summary)}</div>`;
         }
         
-        // Display key insights
-        if (result.keyInsights && result.keyInsights.length > 0) {
+        // Display Improved Version (THE KEY FEATURE - copy-ready content)
+        if (result.improvedVersion && this.improvedVersionSection) {
+            this.improvedVersionSection.classList.add('visible');
+            const improvedContent = result.improvedVersion.content || '';
+            this.improvedVersionContent.innerHTML = `
+                <div class="improved-version-text">${this.formatMarkdown(improvedContent)}</div>
+            `;
+            
+            // Set up copy button for improved version
+            if (this.copyImprovedBtn) {
+                this.copyImprovedBtn.onclick = () => this.copyImprovedVersion();
+            }
+        } else if (this.improvedVersionSection) {
+            this.improvedVersionSection.classList.remove('visible');
+        }
+        
+        // Display confidence score
+        if (result.confidence && this.confidenceSection) {
+            this.confidenceSection.classList.add('visible');
+            const percentage = Math.round(result.confidence.score * 100);
+            if (this.confidenceFillAgent) {
+                this.confidenceFillAgent.style.width = `${percentage}%`;
+                this.confidenceFillAgent.className = `confidence-fill ${result.confidence.level}`;
+            }
+            if (this.confidenceValueAgent) {
+                this.confidenceValueAgent.textContent = `${percentage}%`;
+            }
+            if (this.confidenceExplanation) {
+                this.confidenceExplanation.textContent = result.confidence.explanation || '';
+            }
+        } else if (this.confidenceSection) {
+            this.confidenceSection.classList.remove('visible');
+        }
+        
+        // Display Strategic Analysis (Strengths, Gaps, Opportunities)
+        if (result.strategicAnalysis && this.keyInsightsSection) {
             this.keyInsightsSection.classList.add('visible');
-            this.keyInsightsList.innerHTML = result.keyInsights.map(insight => `
-                <li class="key-insight-item">${this.escapeHtml(insight)}</li>
-            `).join('');
+            let analysisHtml = '';
+            
+            if (result.strategicAnalysis.strengths && result.strategicAnalysis.strengths.length > 0) {
+                analysisHtml += `<div class="analysis-group strengths">
+                    <h4>💪 Strengths</h4>
+                    <ul>${result.strategicAnalysis.strengths.map(s => `<li>${this.escapeHtml(s)}</li>`).join('')}</ul>
+                </div>`;
+            }
+            if (result.strategicAnalysis.gaps && result.strategicAnalysis.gaps.length > 0) {
+                analysisHtml += `<div class="analysis-group gaps">
+                    <h4>⚠️ Gaps & Weaknesses</h4>
+                    <ul>${result.strategicAnalysis.gaps.map(g => `<li>${this.escapeHtml(g)}</li>`).join('')}</ul>
+                </div>`;
+            }
+            if (result.strategicAnalysis.opportunities && result.strategicAnalysis.opportunities.length > 0) {
+                analysisHtml += `<div class="analysis-group opportunities">
+                    <h4>🚀 Opportunities</h4>
+                    <ul>${result.strategicAnalysis.opportunities.map(o => `<li>${this.escapeHtml(o)}</li>`).join('')}</ul>
+                </div>`;
+            }
+            this.keyInsightsList.innerHTML = analysisHtml;
         } else {
-            this.keyInsightsSection.classList.remove('visible');
+            this.keyInsightsSection?.classList.remove('visible');
         }
         
-        // Display expanded ideas
-        if (result.expandedIdeas && result.expandedIdeas.length > 0) {
-            this.expandedIdeasSection.classList.add('visible');
-            this.expandedIdeasList.innerHTML = result.expandedIdeas.map(idea => `
-                <div class="expanded-idea-card">
-                    <div class="idea-header">
-                        <span class="idea-title">${this.escapeHtml(idea.title)}</span>
-                        <div class="idea-badges">
+        // Display Enhancement Ideas
+        if (result.enhancementIdeas && result.enhancementIdeas.length > 0 && this.practicalSection) {
+            this.practicalSection.classList.add('visible');
+            this.practicalContent.innerHTML = result.enhancementIdeas.map(idea => `
+                <div class="enhancement-card">
+                    <div class="enhancement-header">
+                        <h4>${this.escapeHtml(idea.heading)}</h4>
+                        <div class="enhancement-badges">
                             ${idea.impact ? `<span class="impact-badge ${idea.impact}">${idea.impact} impact</span>` : ''}
-                            ${idea.timeline ? `<span class="timeline-badge">${idea.timeline}</span>` : ''}
+                            ${idea.effort ? `<span class="effort-badge ${idea.effort}">${idea.effort} effort</span>` : ''}
                         </div>
                     </div>
-                    <div class="idea-description">${this.escapeHtml(idea.description)}</div>
-                    ${idea.keyActions && idea.keyActions.length > 0 ? `
-                        <div class="idea-actions">
-                            <strong>Key Actions:</strong>
-                            <ul>${idea.keyActions.map(a => `<li>${this.escapeHtml(a)}</li>`).join('')}</ul>
-                        </div>
-                    ` : ''}
+                    <ul class="enhancement-points">
+                        ${idea.points.map(p => `<li>${this.escapeHtml(p)}</li>`).join('')}
+                    </ul>
                 </div>
             `).join('');
-        } else {
-            this.expandedIdeasSection.classList.remove('visible');
+        } else if (this.practicalSection) {
+            this.practicalSection.classList.remove('visible');
         }
         
-        // Display action items
-        if (result.actionItems && result.actionItems.length > 0) {
-            this.actionItemsSection.classList.add('visible');
-            this.actionItemsList.innerHTML = result.actionItems.map(item => `
-                <div class="action-item-card">
-                    <div class="action-priority">Priority ${item.priority}</div>
-                    <div class="action-task">${this.escapeHtml(item.task)}</div>
-                    <div class="action-details">${this.escapeHtml(item.details)}</div>
-                    <div class="action-meta">
-                        ${item.owner ? `<span class="action-owner">👤 ${this.escapeHtml(item.owner)}</span>` : ''}
-                        ${item.deadline ? `<span class="action-deadline">📅 ${this.escapeHtml(item.deadline)}</span>` : ''}
+        // Display Strategic Framework (Short/Medium/Long Term)
+        if (result.strategicFramework && this.quickFactsSection) {
+            this.quickFactsSection.classList.add('visible');
+            let frameworkHtml = '';
+            
+            if (result.strategicFramework.shortTerm && result.strategicFramework.shortTerm.length > 0) {
+                frameworkHtml += `<div class="timeline-section short-term">
+                    <h4>⚡ Short Term (0-3 months)</h4>
+                    <ul>${result.strategicFramework.shortTerm.map(s => `<li>${this.escapeHtml(s)}</li>`).join('')}</ul>
+                </div>`;
+            }
+            if (result.strategicFramework.mediumTerm && result.strategicFramework.mediumTerm.length > 0) {
+                frameworkHtml += `<div class="timeline-section medium-term">
+                    <h4>📈 Medium Term (3-6 months)</h4>
+                    <ul>${result.strategicFramework.mediumTerm.map(m => `<li>${this.escapeHtml(m)}</li>`).join('')}</ul>
+                </div>`;
+            }
+            if (result.strategicFramework.longTerm && result.strategicFramework.longTerm.length > 0) {
+                frameworkHtml += `<div class="timeline-section long-term">
+                    <h4>🎯 Long Term (6-12+ months)</h4>
+                    <ul>${result.strategicFramework.longTerm.map(l => `<li>${this.escapeHtml(l)}</li>`).join('')}</ul>
+                </div>`;
+            }
+            this.quickFactsList.innerHTML = frameworkHtml;
+        } else if (this.quickFactsSection) {
+            this.quickFactsSection.classList.remove('visible');
+        }
+        
+        // Display Risk Considerations
+        if (result.riskConsiderations && result.riskConsiderations.length > 0 && this.nuancesSection) {
+            this.nuancesSection.classList.add('visible');
+            this.nuancesList.innerHTML = result.riskConsiderations.map(risk => `
+                <div class="risk-card ${risk.severity}">
+                    <div class="risk-header">
+                        <span class="risk-icon">${risk.severity === 'high' ? '🔴' : risk.severity === 'medium' ? '🟡' : '🟢'}</span>
+                        <span class="risk-text">${this.escapeHtml(risk.risk)}</span>
+                    </div>
+                    <div class="risk-mitigation">
+                        <strong>Mitigation:</strong> ${this.escapeHtml(risk.mitigation)}
                     </div>
                 </div>
             `).join('');
-        } else {
-            this.actionItemsSection.classList.remove('visible');
+        } else if (this.nuancesSection) {
+            this.nuancesSection.classList.remove('visible');
         }
         
-        // Display follow-up questions
-        if (result.followUpQuestions && result.followUpQuestions.length > 0) {
+        // Display Key Metrics
+        if (result.keyMetrics && result.keyMetrics.length > 0 && this.sourcesSection) {
+            this.sourcesSection.classList.add('visible');
+            this.sourcesList.innerHTML = `<div class="metrics-container">${result.keyMetrics.map(metric => `
+                <div class="metric-card">
+                    <div class="metric-name">${this.escapeHtml(metric.metric)}</div>
+                    <div class="metric-target">Target: ${this.escapeHtml(metric.target)}</div>
+                    <div class="metric-rationale">${this.escapeHtml(metric.rationale)}</div>
+                </div>
+            `).join('')}</div>`;
+        } else if (this.sourcesSection) {
+            this.sourcesSection.classList.remove('visible');
+        }
+        
+        // Display Implementation Checklist
+        if (result.implementationChecklist && result.implementationChecklist.length > 0 && this.misconceptionsSection) {
+            this.misconceptionsSection.classList.add('visible');
+            this.misconceptionsList.innerHTML = `<div class="checklist-container">
+                ${result.implementationChecklist.map(item => `
+                    <div class="checklist-item">${this.escapeHtml(item)}</div>
+                `).join('')}
+            </div>`;
+        } else if (this.misconceptionsSection) {
+            this.misconceptionsSection.classList.remove('visible');
+        }
+        
+        // Display Additional Considerations
+        if (result.additionalConsiderations && result.additionalConsiderations.length > 0 && this.expertSection) {
+            this.expertSection.classList.add('visible');
+            this.expertContent.innerHTML = `
+                <div class="considerations-list">
+                    <ul>${result.additionalConsiderations.map(c => `<li>${this.escapeHtml(c)}</li>`).join('')}</ul>
+                </div>
+            `;
+        } else if (this.expertSection) {
+            this.expertSection.classList.remove('visible');
+        }
+        
+        // Display Suggested Questions - clickable questions user can ask
+        if (result.suggestedQuestions && result.suggestedQuestions.length > 0) {
             this.relatedQuestionsSection.classList.add('visible');
-            this.relatedQuestionsList.innerHTML = result.followUpQuestions.map(q => `
-                <div class="follow-up-question" onclick="document.getElementById('inputText').value = '${this.escapeHtml(q).replace(/'/g, "\\'")}'; document.getElementById('inputText').focus();">
-                    <span class="question-icon">❓</span>
-                    <span class="question-text">${this.escapeHtml(q)}</span>
+            this.relatedQuestionsList.innerHTML = `
+                <div class="suggested-questions-intro">
+                    <span class="intro-icon">💬</span>
+                    <span>Click any question to ask, or type your own question below:</span>
                 </div>
-            `).join('');
+                <div class="suggested-questions-grid">
+                    ${result.suggestedQuestions.map(q => `
+                        <div class="suggested-question-card" onclick="document.getElementById('followUpInput').value = '${this.escapeHtml(q.question).replace(/'/g, "\\'")}'; document.getElementById('followUpInput').focus();">
+                            <span class="question-category-icon">${this.getCategoryIcon(q.category)}</span>
+                            <div class="question-details">
+                                <span class="question-text">${this.escapeHtml(q.question)}</span>
+                                <span class="question-purpose">${this.escapeHtml(q.purpose)}</span>
+                            </div>
+                            <span class="question-category-tag ${q.category}">${this.escapeHtml(q.category)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="follow-up-input-container">
+                    <input type="text" id="followUpInput" class="follow-up-input" placeholder="Type your question about this content..." />
+                    <button class="follow-up-submit-btn" id="followUpSubmitBtn" title="Ask question">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            // Bind follow-up input events
+            const followUpInput = document.getElementById('followUpInput');
+            const followUpSubmitBtn = document.getElementById('followUpSubmitBtn');
+            
+            if (followUpInput && followUpSubmitBtn) {
+                followUpSubmitBtn.onclick = () => this.askFollowUpQuestion();
+                followUpInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        this.askFollowUpQuestion();
+                    }
+                });
+            }
         } else {
-            this.relatedQuestionsSection.classList.remove('visible');
+            this.relatedQuestionsSection?.classList.remove('visible');
         }
         
-        // Display resources
-        if (result.resources && result.resources.length > 0) {
-            this.resourcesSection.classList.add('visible');
-            this.resourcesList.innerHTML = result.resources.map(res => `
-                <div class="resource-card">
-                    <span class="resource-type">${this.escapeHtml(res.type)}</span>
-                    <div class="resource-name">${this.escapeHtml(res.name)}</div>
-                    <div class="resource-desc">${this.escapeHtml(res.description)}</div>
-                    ${res.application ? `<div class="resource-application"><strong>Application:</strong> ${this.escapeHtml(res.application)}</div>` : ''}
-                </div>
-            `).join('');
-        } else {
-            this.resourcesSection.classList.remove('visible');
-        }
+        // Hide unused sections
+        this.expandedIdeasSection?.classList.remove('visible');
+        this.actionItemsSection?.classList.remove('visible');
+        this.resourcesSection?.classList.remove('visible');
         
         // Bind copy agent button
         this.copyAgentBtn.onclick = () => this.copyAgentResponse();
     }
     
+    formatMarkdown(text) {
+        // Simple markdown formatting
+        let formatted = this.escapeHtml(text);
+        // Bold
+        formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // Italic
+        formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        // Headers
+        formatted = formatted.replace(/^### (.*$)/gim, '<h5>$1</h5>');
+        formatted = formatted.replace(/^## (.*$)/gim, '<h4>$1</h4>');
+        formatted = formatted.replace(/^# (.*$)/gim, '<h3>$1</h3>');
+        // Bullet points
+        formatted = formatted.replace(/^[•\-\*] (.*$)/gim, '<li>$1</li>');
+        // Wrap consecutive li elements in ul
+        formatted = formatted.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+        // Line breaks
+        formatted = formatted.replace(/\n\n/g, '</p><p>');
+        formatted = formatted.replace(/\n/g, '<br>');
+        return `<p>${formatted}</p>`;
+    }
+    
+    async askFollowUpQuestion() {
+        const followUpInput = document.getElementById('followUpInput');
+        if (!followUpInput) return;
+        
+        const question = followUpInput.value.trim();
+        if (!question) {
+            this.showToast('Please enter a question', 'error');
+            return;
+        }
+        
+        // Add context about what we're asking about
+        const contextualQuestion = `Regarding the previous analysis, I have a follow-up question: ${question}`;
+        
+        // Set the main input and trigger the agent
+        this.inputText.value = contextualQuestion;
+        followUpInput.value = '';
+        
+        // Scroll to top and trigger analysis
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        this.askAgent();
+    }
+    
+    async copyImprovedVersion() {
+        if (!this.currentAgentResponse || !this.currentAgentResponse.improvedVersion) {
+            this.showToast('No improved version to copy.', 'error');
+            return;
+        }
+        
+        const content = this.currentAgentResponse.improvedVersion.content;
+        
+        try {
+            await navigator.clipboard.writeText(content);
+            this.showToast('Improved version copied to clipboard!', 'success');
+        } catch (err) {
+            this.showToast('Failed to copy. Please select and copy manually.', 'error');
+        }
+    }
+    
+    getCategoryIcon(category) {
+        const icons = {
+            'operational': '⚙️',
+            'financial': '💰',
+            'customer': '👥',
+            'competitive': '🏆',
+            'growth': '📈',
+            'clarification': '❓'
+        };
+        return icons[category] || '💭';
+    }
+    
     hideAgent() {
         this.agentSection.classList.remove('visible');
         this.answerSection.classList.remove('visible');
+        this.improvedVersionSection?.classList.remove('visible');
         this.keyInsightsSection.classList.remove('visible');
-        this.expandedIdeasSection.classList.remove('visible');
-        this.actionItemsSection.classList.remove('visible');
+        this.expandedIdeasSection?.classList.remove('visible');
+        this.actionItemsSection?.classList.remove('visible');
         this.relatedQuestionsSection.classList.remove('visible');
-        this.resourcesSection.classList.remove('visible');
+        this.resourcesSection?.classList.remove('visible');
+        this.confidenceSection?.classList.remove('visible');
+        this.sourcesSection?.classList.remove('visible');
+        this.practicalSection?.classList.remove('visible');
+        this.nuancesSection?.classList.remove('visible');
+        this.quickFactsSection?.classList.remove('visible');
+        this.misconceptionsSection?.classList.remove('visible');
+        this.expertSection?.classList.remove('visible');
+    }
+    
+    clearAgentHistory() {
+        this.agentConversationHistory = [];
+        localStorage.removeItem('agent_conversation_history');
+        this.showToast('Conversation history cleared', 'success');
     }
     
     async copyAgentResponse() {
@@ -2145,52 +2966,116 @@ Always respond with valid JSON only, no additional text.`;
             return;
         }
         
-        // Format the response as readable text
+        // Format the response as readable text for the new strategic format
         let text = '';
+        const r = this.currentAgentResponse;
         
-        if (this.currentAgentResponse.summary) {
-            text += `ANALYSIS SUMMARY\n${'='.repeat(50)}\n${this.currentAgentResponse.summary}\n\n`;
+        if (r.summary) {
+            text += `EXECUTIVE SUMMARY\n${'='.repeat(50)}\n${r.summary}\n\n`;
         }
         
-        if (this.currentAgentResponse.keyInsights && this.currentAgentResponse.keyInsights.length > 0) {
-            text += `KEY INSIGHTS\n${'='.repeat(50)}\n`;
-            this.currentAgentResponse.keyInsights.forEach((insight, i) => {
-                text += `${i + 1}. ${insight}\n`;
+        if (r.confidence) {
+            text += `Confidence: ${Math.round(r.confidence.score * 100)}% (${r.confidence.level})\n`;
+            if (r.confidence.explanation) text += `${r.confidence.explanation}\n`;
+            text += '\n';
+        }
+        
+        if (r.strategicAnalysis) {
+            text += `STRATEGIC ANALYSIS\n${'='.repeat(50)}\n`;
+            if (r.strategicAnalysis.strengths?.length > 0) {
+                text += `\n💪 STRENGTHS:\n`;
+                r.strategicAnalysis.strengths.forEach(s => text += `${s}\n`);
+            }
+            if (r.strategicAnalysis.gaps?.length > 0) {
+                text += `\n⚠️ GAPS & WEAKNESSES:\n`;
+                r.strategicAnalysis.gaps.forEach(g => text += `${g}\n`);
+            }
+            if (r.strategicAnalysis.opportunities?.length > 0) {
+                text += `\n🚀 OPPORTUNITIES:\n`;
+                r.strategicAnalysis.opportunities.forEach(o => text += `${o}\n`);
+            }
+            text += '\n';
+        }
+        
+        // Add Improved Version section - Copy Ready
+        if (r.improvedVersion) {
+            text += `\n${'='.repeat(50)}\n`;
+            text += `✨ ${r.improvedVersion.title || 'IMPROVED VERSION'}\n`;
+            text += `${'='.repeat(50)}\n`;
+            text += `${r.improvedVersion.content}\n\n`;
+        }
+        
+        if (r.enhancementIdeas?.length > 0) {
+            text += `ENHANCEMENT IDEAS\n${'='.repeat(50)}\n`;
+            r.enhancementIdeas.forEach(idea => {
+                text += `\n📌 ${idea.heading}\n`;
+                text += `   Impact: ${idea.impact || 'N/A'} | Effort: ${idea.effort || 'N/A'}\n`;
+                idea.points.forEach(p => text += `   ${p}\n`);
             });
             text += '\n';
         }
         
-        if (this.currentAgentResponse.expandedIdeas && this.currentAgentResponse.expandedIdeas.length > 0) {
-            text += `EXPANDED IDEAS & RECOMMENDATIONS\n${'='.repeat(50)}\n`;
-            this.currentAgentResponse.expandedIdeas.forEach((idea, i) => {
-                text += `\n${i + 1}. ${idea.title}\n`;
-                text += `   Impact: ${idea.impact || 'N/A'} | Timeline: ${idea.timeline || 'N/A'}\n`;
-                text += `   ${idea.description}\n`;
-                if (idea.keyActions && idea.keyActions.length > 0) {
-                    text += `   Key Actions:\n`;
-                    idea.keyActions.forEach(a => text += `   • ${a}\n`);
-                }
+        if (r.strategicFramework) {
+            text += `STRATEGIC TIMELINE\n${'='.repeat(50)}\n`;
+            if (r.strategicFramework.shortTerm?.length > 0) {
+                text += `\n⚡ SHORT TERM (0-3 months):\n`;
+                r.strategicFramework.shortTerm.forEach(s => text += `${s}\n`);
+            }
+            if (r.strategicFramework.mediumTerm?.length > 0) {
+                text += `\n📈 MEDIUM TERM (3-6 months):\n`;
+                r.strategicFramework.mediumTerm.forEach(m => text += `${m}\n`);
+            }
+            if (r.strategicFramework.longTerm?.length > 0) {
+                text += `\n🎯 LONG TERM (6-12+ months):\n`;
+                r.strategicFramework.longTerm.forEach(l => text += `${l}\n`);
+            }
+            text += '\n';
+        }
+        
+        if (r.keyMetrics?.length > 0) {
+            text += `KEY METRICS & KPIs\n${'='.repeat(50)}\n`;
+            r.keyMetrics.forEach(m => {
+                text += `• ${m.metric}: ${m.target}\n  ${m.rationale}\n`;
             });
             text += '\n';
         }
         
-        if (this.currentAgentResponse.actionItems && this.currentAgentResponse.actionItems.length > 0) {
-            text += `ACTION ITEMS\n${'='.repeat(50)}\n`;
-            this.currentAgentResponse.actionItems.forEach(item => {
-                text += `[Priority ${item.priority}] ${item.task}\n`;
-                text += `   ${item.details}\n`;
-                if (item.owner) text += `   Owner: ${item.owner}\n`;
-                if (item.deadline) text += `   Deadline: ${item.deadline}\n`;
-                text += '\n';
-            });
-        }
-        
-        if (this.currentAgentResponse.followUpQuestions && this.currentAgentResponse.followUpQuestions.length > 0) {
-            text += `FOLLOW-UP QUESTIONS\n${'='.repeat(50)}\n`;
-            this.currentAgentResponse.followUpQuestions.forEach((q, i) => {
-                text += `${i + 1}. ${q}\n`;
+        if (r.riskConsiderations?.length > 0) {
+            text += `RISK CONSIDERATIONS\n${'='.repeat(50)}\n`;
+            r.riskConsiderations.forEach(risk => {
+                text += `• [${risk.severity?.toUpperCase() || 'MEDIUM'}] ${risk.risk}\n`;
+                text += `  Mitigation: ${risk.mitigation}\n`;
             });
             text += '\n';
+        }
+        
+        if (r.implementationChecklist?.length > 0) {
+            text += `IMPLEMENTATION CHECKLIST\n${'='.repeat(50)}\n`;
+            r.implementationChecklist.forEach(item => text += `${item}\n`);
+            text += '\n';
+        }
+        
+        if (r.additionalConsiderations?.length > 0) {
+            text += `ADDITIONAL CONSIDERATIONS\n${'='.repeat(50)}\n`;
+            r.additionalConsiderations.forEach(c => text += `${c}\n`);
+            text += '\n';
+        }
+        
+        // Updated to use suggestedQuestions instead of probingQuestions
+        if (r.suggestedQuestions?.length > 0) {
+            text += `SUGGESTED QUESTIONS\n${'='.repeat(50)}\n`;
+            r.suggestedQuestions.forEach((q, i) => {
+                text += `${i + 1}. ${q.question}\n`;
+                text += `   Purpose: ${q.purpose}\n`;
+                text += `   Category: ${q.category}\n\n`;
+            });
+        } else if (r.probingQuestions?.length > 0) {
+            text += `CONTINUE THE CONVERSATION\n${'='.repeat(50)}\n`;
+            r.probingQuestions.forEach((q, i) => {
+                text += `${i + 1}. ${q.question}\n`;
+                text += `   Purpose: ${q.purpose}\n`;
+                text += `   Category: ${q.category}\n\n`;
+            });
         }
         
         try {
@@ -2207,14 +3092,44 @@ Always respond with valid JSON only, no additional text.`;
             return;
         }
         
-        // Get the current email preview content
-        const emailText = this.emailPreview.innerText || this.emailPreview.textContent;
+        // Get the current greeting and closing
+        let greeting = this.currentEmail.greeting;
+        let closing = this.currentEmail.closing;
+        
+        const selectedGreeting = this.greetingOptions.querySelector('.greeting-option.selected');
+        if (selectedGreeting) greeting = selectedGreeting.dataset.greeting;
+        
+        const selectedClosing = this.closingOptions.querySelector('.closing-option.selected');
+        if (selectedClosing) closing = selectedClosing.dataset.closing;
+        
+        // Build plain text version
+        const plainTextEmail = `${greeting}\n\n${this.currentEmail.body}\n\n${closing}\n\n${this.emailSignaturePlainText}`;
+        
+        // Build HTML version with rich signature
+        const htmlEmail = `<div>${greeting.replace(/\n/g, '<br>')}</div>
+<br>
+<div>${this.currentEmail.body.replace(/\n\n/g, '</div><br><div>').replace(/\n/g, '<br>')}</div>
+<br>
+<div>${closing.replace(/\n/g, '<br>')}</div>
+<br>
+${this.emailSignatureHTML}`;
         
         try {
-            await navigator.clipboard.writeText(emailText);
-            this.showToast('Email copied to clipboard!', 'success');
+            // Try to copy both plain text and HTML for rich paste support
+            const clipboardItem = new ClipboardItem({
+                'text/plain': new Blob([plainTextEmail], { type: 'text/plain' }),
+                'text/html': new Blob([htmlEmail], { type: 'text/html' })
+            });
+            await navigator.clipboard.write([clipboardItem]);
+            this.showToast('Email with signature copied! Paste in email client for formatted signature.', 'success');
         } catch (err) {
-            this.showToast('Failed to copy. Please select and copy manually.', 'error');
+            // Fallback to plain text copy
+            try {
+                await navigator.clipboard.writeText(plainTextEmail);
+                this.showToast('Email copied to clipboard!', 'success');
+            } catch (err2) {
+                this.showToast('Failed to copy. Please select and copy manually.', 'error');
+            }
         }
     }
     
