@@ -37,8 +37,13 @@ Phone: +27 66 273 1270`;
         this.openrouterApiKey = localStorage.getItem('openrouter_api_key') || '';
         this.openaiApiKey = localStorage.getItem('openai_api_key') || '';
         this.deepseekApiKey = localStorage.getItem('deepseek_api_key') || '';
+        this.anthropicApiKey = localStorage.getItem('anthropic_api_key') || '';
+        this.googleApiKey = localStorage.getItem('google_api_key') || '';
+        this.grokApiKey = localStorage.getItem('grok_api_key') || '';
+        this.morphApiKey = localStorage.getItem('morph_api_key') || '';
         
-        // Model and endpoint will be set dynamically
+        // Current provider and model
+        this.currentProvider = localStorage.getItem('current_provider') || 'openrouter';
         this.model = localStorage.getItem('openrouter_model') || 'anthropic/claude-3.5-sonnet';
         
         // DOM Elements
@@ -55,10 +60,39 @@ Phone: +27 66 273 1270`;
         this.apiKeyInput = document.getElementById('apiKeyInput');
         this.openaiKeyInput = document.getElementById('openaiKeyInput');
         this.deepseekKeyInput = document.getElementById('deepseekKeyInput');
-        this.openrouterKeySection = document.getElementById('openrouterKeySection');
-        this.openaiKeySection = document.getElementById('openaiKeySection');
-        this.deepseekKeySection = document.getElementById('deepseekKeySection');
-        this.modelSelect = document.getElementById('modelSelect');
+        this.anthropicKeyInput = document.getElementById('anthropicKeyInput');
+        this.googleKeyInput = document.getElementById('googleKeyInput');
+        this.grokKeyInput = document.getElementById('grokKeyInput');
+        this.morphKeyInput = document.getElementById('morphKeyInput');
+        
+        // Provider tabs and sections
+        this.providerTabs = document.getElementById('providerTabs');
+        this.openrouterSection = document.getElementById('openrouterSection');
+        this.anthropicSection = document.getElementById('anthropicSection');
+        this.openaiSection = document.getElementById('openaiSection');
+        this.googleSection = document.getElementById('googleSection');
+        this.deepseekSection = document.getElementById('deepseekSection');
+        this.grokSection = document.getElementById('grokSection');
+        this.morphSection = document.getElementById('morphSection');
+        
+        // Model selects for each provider
+        this.openrouterModelSelect = document.getElementById('openrouterModelSelect');
+        this.anthropicModelSelect = document.getElementById('anthropicModelSelect');
+        this.openaiModelSelect = document.getElementById('openaiModelSelect');
+        this.googleModelSelect = document.getElementById('googleModelSelect');
+        this.deepseekModelSelect = document.getElementById('deepseekModelSelect');
+        this.grokModelSelect = document.getElementById('grokModelSelect');
+        this.morphModelSelect = document.getElementById('morphModelSelect');
+        
+        // Selection display
+        this.selectionDisplay = document.getElementById('selectionDisplay');
+        
+        // Legacy reference for compatibility
+        this.modelSelect = this.openrouterModelSelect;
+        this.openrouterKeySection = this.openrouterSection;
+        this.openaiKeySection = this.openaiSection;
+        this.deepseekKeySection = this.deepseekSection;
+        
         this.saveApiKeyBtn = document.getElementById('saveApiKey');
         this.cancelApiKeyBtn = document.getElementById('cancelApiKey');
         this.recordingIndicator = document.getElementById('recordingIndicator');
@@ -141,6 +175,7 @@ Phone: +27 66 273 1270`;
         this.enhanceModeBtn = document.getElementById('enhanceMode');
         this.emailModeBtn = document.getElementById('emailMode');
         this.agentModeBtn = document.getElementById('agentMode');
+        this.strategyModeBtn = document.getElementById('strategyMode');
         this.inputLabel = document.getElementById('inputLabel');
         this.outputLabel = document.getElementById('outputLabel');
         this.currentMode = 'translate';
@@ -221,6 +256,38 @@ Phone: +27 66 273 1270`;
         this.expertContent = document.getElementById('expertContent');
         this.clearHistoryBtn = document.getElementById('clearAgentHistory');
         
+        // Strategy AI Agent section elements
+        this.strategySection = document.getElementById('strategySection');
+        this.strategySummarySection = document.getElementById('strategySummarySection');
+        this.strategySummary = document.getElementById('strategySummary');
+        this.refinedStrategySection = document.getElementById('refinedStrategySection');
+        this.refinedStrategyContent = document.getElementById('refinedStrategyContent');
+        this.copyRefinedBtn = document.getElementById('copyRefinedBtn');
+        this.comparisonSection = document.getElementById('comparisonSection');
+        this.comparisonContainer = document.getElementById('comparisonContainer');
+        this.objectivesAnalysisSection = document.getElementById('objectivesAnalysisSection');
+        this.objectivesAnalysis = document.getElementById('objectivesAnalysis');
+        this.clarityImprovementsSection = document.getElementById('clarityImprovementsSection');
+        this.clarityImprovements = document.getElementById('clarityImprovements');
+        this.industryAlignmentSection = document.getElementById('industryAlignmentSection');
+        this.industryAlignment = document.getElementById('industryAlignment');
+        this.budgetImplicationsSection = document.getElementById('budgetImplicationsSection');
+        this.budgetImplications = document.getElementById('budgetImplications');
+        this.regionalSection = document.getElementById('regionalSection');
+        this.regionalConsiderations = document.getElementById('regionalConsiderations');
+        this.strategyActionsSection = document.getElementById('strategyActionsSection');
+        this.strategyActions = document.getElementById('strategyActions');
+        this.strategyQuestionsSection = document.getElementById('strategyQuestionsSection');
+        this.strategyQuestionsList = document.getElementById('strategyQuestionsList');
+        this.copyStrategyBtn = document.getElementById('copyStrategyBtn');
+        this.clearStrategyHistoryBtn = document.getElementById('clearStrategyHistory');
+        
+        // Current strategy data
+        this.currentStrategyResponse = null;
+        
+        // Strategy conversation history
+        this.strategyConversationHistory = JSON.parse(localStorage.getItem('strategy_conversation_history') || '[]');
+        
         // Current enhancement/email/agent data
         this.currentEnhancement = null;
         this.currentEmail = null;
@@ -246,12 +313,65 @@ Phone: +27 66 273 1270`;
         // Translation history for ML learning
         this.translationHistory = JSON.parse(localStorage.getItem('translation_history') || '[]');
         
+        // ==================== CHAT MODE PROPERTIES ====================
+        // Chat DOM Elements
+        this.chatModeBtn = document.getElementById('chatMode');
+        this.chatContainer = document.getElementById('chatContainer');
+        this.translationContainer = document.getElementById('translationContainer');
+        this.chatMessages = document.getElementById('chatMessages');
+        this.chatInput = document.getElementById('chatInput');
+        this.chatSendBtn = document.getElementById('chatSendBtn');
+        this.chatMicBtn = document.getElementById('chatMicBtn');
+        this.chatImageBtn = document.getElementById('chatImageBtn');
+        this.chatImageInput = document.getElementById('chatImageInput');
+        this.imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        this.imagePreview = document.getElementById('imagePreview');
+        this.removeImageBtn = document.getElementById('removeImageBtn');
+        this.stopGenerationBtn = document.getElementById('stopGenerationBtn');
+        this.tokenCounter = document.getElementById('tokenCounter');
+        this.chatWelcome = document.getElementById('chatWelcome');
+        
+        // System prompt elements
+        this.systemPromptPanel = document.getElementById('systemPromptPanel');
+        this.systemPromptInput = document.getElementById('systemPromptInput');
+        this.systemPromptContent = document.getElementById('systemPromptContent');
+        this.togglePromptBtn = document.getElementById('togglePromptBtn');
+        
+        // Sidebar elements
+        this.chatSidebar = document.getElementById('chatSidebar');
+        this.sidebarToggle = document.getElementById('sidebarToggle');
+        this.newChatBtn = document.getElementById('newChatBtn');
+        this.conversationsList = document.getElementById('conversationsList');
+        this.chatSearchInput = document.getElementById('chatSearchInput');
+        this.exportChatsBtn = document.getElementById('exportChatsBtn');
+        this.importChatsBtn = document.getElementById('importChatsBtn');
+        
+        // Chat state
+        this.chatConversations = JSON.parse(localStorage.getItem('chat_conversations') || '[]');
+        this.currentChatId = localStorage.getItem('current_chat_id') || null;
+        this.currentChatMessages = [];
+        this.pendingImage = null;
+        this.isStreaming = false;
+        this.streamController = null;
+        this.systemPrompt = localStorage.getItem('chat_system_prompt') || '';
+        
+        // System prompt templates
+        this.promptTemplates = {
+            general: 'You are a helpful, friendly AI assistant. Provide clear, accurate, and thoughtful responses. Be concise but thorough.',
+            coder: 'You are an expert software engineer and coding assistant. Help with code review, debugging, optimization, and explaining complex concepts. Provide working code examples with clear explanations.',
+            writer: 'You are a creative writing assistant with expertise in various writing styles. Help with storytelling, editing, improving prose, and generating creative content. Offer constructive feedback and suggestions.',
+            analyst: 'You are a data analysis expert. Help interpret data, suggest analytical approaches, explain statistical concepts, and provide insights. Use clear visualizations and examples when helpful.',
+            translator: 'You are an expert translator with deep knowledge of languages and cultures. Translate accurately while preserving meaning, tone, and cultural context. Explain nuances when relevant.'
+        };
+        
         this.init();
     }
     
     init() {
         this.bindEvents();
         this.initSpeechRecognition();
+        this.initChatFeatures();
+        this.initAdvancedFeatures();
         this.updateCharCount();
         
         // Check if API key exists
@@ -260,12 +380,135 @@ Phone: +27 66 273 1270`;
         }
     }
     
+    // ==================== CHAT INITIALIZATION ====================
+    initChatFeatures() {
+        // Load system prompt
+        if (this.systemPromptInput && this.systemPrompt) {
+            this.systemPromptInput.value = this.systemPrompt;
+        }
+        
+        // Load current chat if exists
+        if (this.currentChatId) {
+            this.loadChat(this.currentChatId);
+        }
+        
+        // Render conversations list
+        this.renderConversationsList();
+        
+        // Auto-resize chat input
+        if (this.chatInput) {
+            this.chatInput.addEventListener('input', () => {
+                this.chatInput.style.height = 'auto';
+                this.chatInput.style.height = Math.min(this.chatInput.scrollHeight, 150) + 'px';
+                this.updateTokenCount();
+            });
+        }
+    }
+    
     bindEvents() {
+        // Chat mode toggle
+        if (this.chatModeBtn) {
+            this.chatModeBtn.addEventListener('click', () => this.setMode('chat'));
+        }
+        
+        // Chat input events
+        if (this.chatInput) {
+            this.chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    this.sendChatMessage();
+                }
+            });
+        }
+        
+        // Chat send button
+        if (this.chatSendBtn) {
+            this.chatSendBtn.addEventListener('click', () => this.sendChatMessage());
+        }
+        
+        // Chat mic button
+        if (this.chatMicBtn) {
+            this.chatMicBtn.addEventListener('click', () => this.toggleChatSpeechRecognition());
+        }
+        
+        // Chat image upload
+        if (this.chatImageBtn) {
+            this.chatImageBtn.addEventListener('click', () => this.chatImageInput?.click());
+        }
+        if (this.chatImageInput) {
+            this.chatImageInput.addEventListener('change', (e) => this.handleImageUpload(e));
+        }
+        if (this.removeImageBtn) {
+            this.removeImageBtn.addEventListener('click', () => this.removeUploadedImage());
+        }
+        
+        // Stop generation
+        if (this.stopGenerationBtn) {
+            this.stopGenerationBtn.addEventListener('click', () => this.stopStreaming());
+        }
+        
+        // System prompt toggle
+        if (this.togglePromptBtn) {
+            this.togglePromptBtn.addEventListener('click', () => this.toggleSystemPrompt());
+        }
+        if (this.systemPromptInput) {
+            this.systemPromptInput.addEventListener('change', () => this.saveSystemPrompt());
+            this.systemPromptInput.addEventListener('blur', () => this.saveSystemPrompt());
+        }
+        
+        // Prompt templates
+        document.querySelectorAll('.template-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const template = btn.dataset.template;
+                if (this.promptTemplates[template]) {
+                    this.systemPromptInput.value = this.promptTemplates[template];
+                    this.saveSystemPrompt();
+                    this.showToast('Template applied!', 'success');
+                }
+            });
+        });
+        
+        // Suggested prompts
+        document.querySelectorAll('.suggested-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const prompt = btn.dataset.prompt;
+                if (this.chatInput) {
+                    this.chatInput.value = prompt;
+                    this.chatInput.focus();
+                }
+            });
+        });
+        
+        // Sidebar toggle
+        if (this.sidebarToggle) {
+            this.sidebarToggle.addEventListener('click', () => this.toggleSidebar());
+        }
+        
+        // New chat button
+        if (this.newChatBtn) {
+            this.newChatBtn.addEventListener('click', () => this.createNewChat());
+        }
+        
+        // Search conversations
+        if (this.chatSearchInput) {
+            this.chatSearchInput.addEventListener('input', () => this.filterConversations());
+        }
+        
+        // Export/Import chats
+        if (this.exportChatsBtn) {
+            this.exportChatsBtn.addEventListener('click', () => this.exportChats());
+        }
+        if (this.importChatsBtn) {
+            this.importChatsBtn.addEventListener('click', () => this.importChats());
+        }
+        
+        // Mode toggle
         // Mode toggle
         this.translateModeBtn.addEventListener('click', () => this.setMode('translate'));
         this.enhanceModeBtn.addEventListener('click', () => this.setMode('enhance'));
         this.emailModeBtn.addEventListener('click', () => this.setMode('email'));
         this.agentModeBtn.addEventListener('click', () => this.setMode('agent'));
+        this.strategyModeBtn.addEventListener('click', () => this.setMode('strategy'));
         
         // Translation/Enhancement/Email
         this.translateBtn.addEventListener('click', () => this.handleAction());
@@ -310,14 +553,60 @@ Phone: +27 66 273 1270`;
         });
         
         // API key input enter
-        this.apiKeyInput.addEventListener('keydown', (e) => {
+        this.apiKeyInput?.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 this.saveApiKey();
             }
         });
         
-        // Model selection change to toggle API key sections
-        this.modelSelect.addEventListener('change', () => this.updateApiKeyVisibility());
+        // Provider tabs click handlers
+        this.providerTabs?.querySelectorAll('.provider-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                this.switchProvider(tab.dataset.provider);
+            });
+        });
+        
+        // Model selection change handlers for each provider
+        this.openrouterModelSelect?.addEventListener('change', () => {
+            this.updateModelFromProvider();
+            this.updateSelectionDisplay();
+        });
+        this.anthropicModelSelect?.addEventListener('change', () => {
+            this.updateModelFromProvider();
+            this.updateSelectionDisplay();
+        });
+        this.openaiModelSelect?.addEventListener('change', () => {
+            this.updateModelFromProvider();
+            this.updateSelectionDisplay();
+        });
+        this.googleModelSelect?.addEventListener('change', () => {
+            this.updateModelFromProvider();
+            this.updateSelectionDisplay();
+        });
+        this.deepseekModelSelect?.addEventListener('change', () => {
+            this.updateModelFromProvider();
+            this.updateSelectionDisplay();
+        });
+        this.grokModelSelect?.addEventListener('change', () => {
+        this.morphModelSelect?.addEventListener('change', () => {
+            this.updateModelFromProvider();
+            this.updateSelectionDisplay();
+        });
+            this.updateModelFromProvider();
+            this.updateSelectionDisplay();
+        });
+        
+        // Toggle visibility buttons for API keys
+        document.querySelectorAll('.toggle-visibility-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.dataset.target;
+                const input = document.getElementById(targetId);
+                if (input) {
+                    input.type = input.type === 'password' ? 'text' : 'password';
+                    btn.textContent = input.type === 'password' ? '👁️' : '🙈';
+                }
+            });
+        });
         
         // Feedback
         this.feedbackGood.addEventListener('click', () => this.submitFeedback('good'));
@@ -335,10 +624,32 @@ Phone: +27 66 273 1270`;
         this.currentMode = mode;
         
         // Update button states
+        if (this.chatModeBtn) this.chatModeBtn.classList.toggle('active', mode === 'chat');
         this.translateModeBtn.classList.toggle('active', mode === 'translate');
         this.enhanceModeBtn.classList.toggle('active', mode === 'enhance');
         this.emailModeBtn.classList.toggle('active', mode === 'email');
         this.agentModeBtn.classList.toggle('active', mode === 'agent');
+        this.strategyModeBtn.classList.toggle('active', mode === 'strategy');
+        
+        // Show/hide chat container vs translation container
+        if (mode === 'chat') {
+            if (this.chatContainer) this.chatContainer.style.display = 'flex';
+            if (this.translationContainer) this.translationContainer.style.display = 'none';
+            // Hide all other sections
+            this.enhancementSection?.classList.remove('visible');
+            this.emailSection?.classList.remove('visible');
+            this.agentSection?.classList.remove('visible');
+            this.strategySection?.classList.remove('visible');
+            this.detailsSection?.classList.remove('visible');
+            this.insightsSection?.classList.remove('visible');
+            this.expandedSection?.classList.remove('visible');
+            // Focus chat input
+            setTimeout(() => this.chatInput?.focus(), 100);
+            return;
+        } else {
+            if (this.chatContainer) this.chatContainer.style.display = 'none';
+            if (this.translationContainer) this.translationContainer.style.display = 'grid';
+        }
         
         // Update labels and placeholders
         if (mode === 'translate') {
@@ -351,9 +662,11 @@ Phone: +27 66 273 1270`;
             this.enhancementSection.classList.remove('visible');
             this.emailSection.classList.remove('visible');
             this.agentSection.classList.remove('visible');
+            this.strategySection?.classList.remove('visible');
             this.hideEnhancement();
             this.hideEmail();
             this.hideAgent();
+            this.hideStrategy();
         } else if (mode === 'enhance') {
             this.inputLabel.textContent = 'Your Text';
             this.outputLabel.textContent = 'Enhanced';
@@ -363,9 +676,11 @@ Phone: +27 66 273 1270`;
             // Hide other sections
             this.emailSection.classList.remove('visible');
             this.agentSection.classList.remove('visible');
+            this.strategySection?.classList.remove('visible');
             this.hideDetails();
             this.hideEmail();
             this.hideAgent();
+            this.hideStrategy();
         } else if (mode === 'email') {
             this.inputLabel.textContent = 'Afrikaans Email';
             this.outputLabel.textContent = 'English Email';
@@ -375,9 +690,11 @@ Phone: +27 66 273 1270`;
             // Hide other sections
             this.enhancementSection.classList.remove('visible');
             this.agentSection.classList.remove('visible');
+            this.strategySection?.classList.remove('visible');
             this.hideDetails();
             this.hideEnhancement();
             this.hideAgent();
+            this.hideStrategy();
         } else if (mode === 'agent') {
             this.inputLabel.textContent = 'Enter Your Idea or Question';
             this.outputLabel.textContent = 'Strategic Analysis';
@@ -387,9 +704,25 @@ Phone: +27 66 273 1270`;
             // Hide other sections
             this.enhancementSection.classList.remove('visible');
             this.emailSection.classList.remove('visible');
+            this.strategySection?.classList.remove('visible');
             this.hideDetails();
             this.hideEnhancement();
             this.hideEmail();
+            this.hideStrategy();
+        } else if (mode === 'strategy') {
+            this.inputLabel.textContent = 'Strategic Objective / Action Plan';
+            this.outputLabel.textContent = 'Refined Strategy';
+            this.inputText.placeholder = "Paste your annual strategy plan, strategic objectives, or action items here...\n\nThe Strategy Agent will:\n• Simplify and shorten objectives for clarity\n• Ensure alignment with transport industry best practices\n• Consider South Africa/Zimbabwe operational context\n• Provide budget-aligned recommendations\n\nExample:\n• Enhanced Availability: Increase service coverage in the Northern region by acquiring 10 additional heavy-duty vehicles and establishing 3 new maintenance depots to reduce downtime and improve delivery schedules for cross-border operations...";
+            document.querySelector('.translate-btn .btn-text').textContent = 'Refine Strategy';
+            this.outputArea.innerHTML = '<div class="placeholder-text">Refined strategy objectives with improved clarity and conciseness will appear here...</div>';
+            // Hide other sections
+            this.enhancementSection.classList.remove('visible');
+            this.emailSection.classList.remove('visible');
+            this.agentSection.classList.remove('visible');
+            this.hideDetails();
+            this.hideEnhancement();
+            this.hideEmail();
+            this.hideAgent();
         }
         
         // Clear current data
@@ -397,6 +730,7 @@ Phone: +27 66 273 1270`;
         this.currentEnhancement = null;
         this.currentEmail = null;
         this.currentAgentResponse = null;
+        this.currentStrategyResponse = null;
     }
     
     handleAction() {
@@ -408,6 +742,8 @@ Phone: +27 66 273 1270`;
             this.translateEmail();
         } else if (this.currentMode === 'agent') {
             this.askAgent();
+        } else if (this.currentMode === 'strategy') {
+            this.refineStrategy();
         }
     }
     
@@ -814,31 +1150,140 @@ Phone: +27 66 273 1270`;
     }
     
     showModal() {
+        // Populate API key inputs
         this.apiKeyInput.value = this.openrouterApiKey;
         this.openaiKeyInput.value = this.openaiApiKey;
         this.deepseekKeyInput.value = this.deepseekApiKey;
-        this.modelSelect.value = this.model;
-        this.updateApiKeyVisibility();
+        if (this.anthropicKeyInput) this.anthropicKeyInput.value = this.anthropicApiKey;
+        if (this.googleKeyInput) this.googleKeyInput.value = this.googleApiKey;
+        if (this.grokKeyInput) this.grokKeyInput.value = this.grokApiKey;
+        if (this.morphKeyInput) this.morphKeyInput.value = this.morphApiKey;
+        
+        // Set model selects to saved values
+        this.loadSavedModelSelections();
+        
+        // Activate the current provider tab
+        this.switchProvider(this.currentProvider);
+        
+        // Update selection display
+        this.updateSelectionDisplay();
+        
         this.apiKeyModal.classList.add('visible');
-        this.apiKeyInput.focus();
+    }
+    
+    loadSavedModelSelections() {
+        // Load saved model selections for each provider
+        const savedOpenrouterModel = localStorage.getItem('openrouter_model') || 'anthropic/claude-3.5-sonnet';
+        const savedAnthropicModel = localStorage.getItem('anthropic_model') || 'claude-3-5-sonnet-20241022';
+        const savedOpenaiModel = localStorage.getItem('openai_model') || 'gpt-5';
+        const savedGoogleModel = localStorage.getItem('google_model') || 'gemini-2.0-flash';
+        const savedDeepseekModel = localStorage.getItem('deepseek_model') || 'deepseek-reasoner';
+        const savedGrokModel = localStorage.getItem('grok_model') || 'grok-3-latest';
+        const savedMorphModel = localStorage.getItem('morph_model') || 'morph-v2';
+        
+        if (this.openrouterModelSelect) this.openrouterModelSelect.value = savedOpenrouterModel;
+        if (this.anthropicModelSelect) this.anthropicModelSelect.value = savedAnthropicModel;
+        if (this.openaiModelSelect) this.openaiModelSelect.value = savedOpenaiModel;
+        if (this.googleModelSelect) this.googleModelSelect.value = savedGoogleModel;
+        if (this.deepseekModelSelect) this.deepseekModelSelect.value = savedDeepseekModel;
+        if (this.grokModelSelect) this.grokModelSelect.value = savedGrokModel;
+        if (this.morphModelSelect) this.morphModelSelect.value = savedMorphModel;
+    }
+    
+    switchProvider(provider) {
+        this.currentProvider = provider;
+        
+        // Update tab styles
+        const tabs = this.providerTabs?.querySelectorAll('.provider-tab');
+        tabs?.forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.provider === provider);
+        });
+        
+        // Hide all provider content sections
+        const sections = document.querySelectorAll('.provider-content');
+        sections.forEach(section => section.classList.remove('active'));
+        
+        // Show the selected provider section
+        const activeSection = document.getElementById(`${provider}Section`);
+        if (activeSection) {
+            activeSection.classList.add('active');
+        }
+        
+        // Update the model based on current provider selection
+        this.updateModelFromProvider();
+        this.updateSelectionDisplay();
+    }
+    
+    updateModelFromProvider() {
+        switch (this.currentProvider) {
+            case 'openrouter':
+                this.model = this.openrouterModelSelect?.value || 'anthropic/claude-3.5-sonnet';
+                break;
+            case 'anthropic':
+                this.model = `anthropic-direct/${this.anthropicModelSelect?.value || 'claude-3-5-sonnet-20241022'}`;
+                break;
+            case 'openai':
+                this.model = `openai/${this.openaiModelSelect?.value || 'gpt-5'}`;
+                break;
+            case 'google':
+                this.model = `google/${this.googleModelSelect?.value || 'gemini-2.0-flash'}`;
+                break;
+            case 'deepseek':
+                this.model = `deepseek/${this.deepseekModelSelect?.value || 'deepseek-reasoner'}`;
+                break;
+            case 'grok':
+                this.model = `grok/${this.grokModelSelect?.value || 'grok-3-latest'}`;
+                break;
+            case 'morph':
+                this.model = `morph/${this.morphModelSelect?.value || 'morph-v2'}`;
+                break;
+        }
+    }
+    
+    updateSelectionDisplay() {
+        if (!this.selectionDisplay) return;
+        
+        const providerNames = {
+            'openrouter': 'OpenRouter',
+            'anthropic': 'Anthropic',
+            'openai': 'OpenAI',
+            'google': 'Google Gemini',
+            'deepseek': 'DeepSeek',
+            'grok': 'Grok (xAI)',
+            'morph': 'Morph AI'
+        };
+        
+        let modelName = '';
+        switch (this.currentProvider) {
+            case 'openrouter':
+                modelName = this.openrouterModelSelect?.selectedOptions[0]?.text || this.model;
+                break;
+            case 'anthropic':
+                modelName = this.anthropicModelSelect?.selectedOptions[0]?.text || this.model;
+                break;
+            case 'openai':
+                modelName = this.openaiModelSelect?.selectedOptions[0]?.text || this.model;
+                break;
+            case 'google':
+                modelName = this.googleModelSelect?.selectedOptions[0]?.text || this.model;
+                break;
+            case 'deepseek':
+                modelName = this.deepseekModelSelect?.selectedOptions[0]?.text || this.model;
+                break;
+            case 'grok':
+                modelName = this.grokModelSelect?.selectedOptions[0]?.text || this.model;
+                break;
+            case 'morph':
+                modelName = this.morphModelSelect?.selectedOptions[0]?.text || this.model;
+                break;
+        }
+        
+        this.selectionDisplay.textContent = `${providerNames[this.currentProvider]} - ${modelName}`;
     }
     
     updateApiKeyVisibility() {
-        const model = this.modelSelect.value;
-        
-        // Hide all sections first
-        this.openrouterKeySection.style.display = 'none';
-        this.openaiKeySection.style.display = 'none';
-        this.deepseekKeySection.style.display = 'none';
-        
-        // Show relevant section based on model
-        if (model.startsWith('openai/')) {
-            this.openaiKeySection.style.display = 'block';
-        } else if (model.startsWith('deepseek/')) {
-            this.deepseekKeySection.style.display = 'block';
-        } else {
-            this.openrouterKeySection.style.display = 'block';
-        }
+        // Legacy function - now handled by switchProvider
+        this.switchProvider(this.currentProvider);
     }
     
     hideModal() {
@@ -846,35 +1291,75 @@ Phone: +27 66 273 1270`;
     }
     
     saveApiKey() {
-        this.model = this.modelSelect.value;
+        // Update model from current provider selection
+        this.updateModelFromProvider();
         
         // Save all API keys
-        const openrouterKey = this.apiKeyInput.value.trim();
-        const openaiKey = this.openaiKeyInput.value.trim();
-        const deepseekKey = this.deepseekKeyInput.value.trim();
+        const openrouterKey = this.apiKeyInput?.value.trim() || '';
+        const openaiKey = this.openaiKeyInput?.value.trim() || '';
+        const deepseekKey = this.deepseekKeyInput?.value.trim() || '';
+        const anthropicKey = this.anthropicKeyInput?.value.trim() || '';
+        const googleKey = this.googleKeyInput?.value.trim() || '';
+        const grokKey = this.grokKeyInput?.value.trim() || '';
+        const morphKey = this.morphKeyInput?.value.trim() || '';
         
-        // Validate that the required key for selected model is provided
-        if (this.model.startsWith('openai/') && !openaiKey) {
+        // Validate that the required key for selected provider is provided
+        if (this.currentProvider === 'openai' && !openaiKey) {
             this.showToast('Please enter your OpenAI API key.', 'error');
             return;
         }
-        if (this.model.startsWith('deepseek/') && !deepseekKey) {
+        if (this.currentProvider === 'deepseek' && !deepseekKey) {
             this.showToast('Please enter your DeepSeek API key.', 'error');
             return;
         }
-        if (this.model.startsWith('anthropic/') && !openrouterKey) {
+        if (this.currentProvider === 'anthropic' && !anthropicKey) {
+            this.showToast('Please enter your Anthropic API key.', 'error');
+            return;
+        }
+        if (this.currentProvider === 'google' && !googleKey) {
+            this.showToast('Please enter your Google AI API key.', 'error');
+            return;
+        }
+        if (this.currentProvider === 'grok' && !grokKey) {
+            this.showToast('Please enter your xAI API key.', 'error');
+            return;
+        }
+        if (this.currentProvider === 'morph' && !morphKey) {
+            this.showToast('Please enter your Morph AI API key.', 'error');
+            return;
+        }
+        if (this.currentProvider === 'openrouter' && !openrouterKey) {
             this.showToast('Please enter your OpenRouter API key.', 'error');
             return;
         }
         
+        // Update instance variables
         this.openrouterApiKey = openrouterKey;
         this.openaiApiKey = openaiKey;
         this.deepseekApiKey = deepseekKey;
+        this.anthropicApiKey = anthropicKey;
+        this.googleApiKey = googleKey;
+        this.grokApiKey = grokKey;
+        this.morphApiKey = morphKey;
         
+        // Save to localStorage
         localStorage.setItem('openrouter_api_key', openrouterKey);
         localStorage.setItem('openai_api_key', openaiKey);
         localStorage.setItem('deepseek_api_key', deepseekKey);
-        localStorage.setItem('openrouter_model', this.model);
+        localStorage.setItem('anthropic_api_key', anthropicKey);
+        localStorage.setItem('google_api_key', googleKey);
+        localStorage.setItem('grok_api_key', grokKey);
+        localStorage.setItem('morph_api_key', morphKey);
+        localStorage.setItem('current_provider', this.currentProvider);
+        
+        // Save model selections for each provider
+        if (this.openrouterModelSelect) localStorage.setItem('openrouter_model', this.openrouterModelSelect.value);
+        if (this.anthropicModelSelect) localStorage.setItem('anthropic_model', this.anthropicModelSelect.value);
+        if (this.openaiModelSelect) localStorage.setItem('openai_model', this.openaiModelSelect.value);
+        if (this.googleModelSelect) localStorage.setItem('google_model', this.googleModelSelect.value);
+        if (this.deepseekModelSelect) localStorage.setItem('deepseek_model', this.deepseekModelSelect.value);
+        if (this.grokModelSelect) localStorage.setItem('grok_model', this.grokModelSelect.value);
+        if (this.morphModelSelect) localStorage.setItem('morph_model', this.morphModelSelect.value);
         
         this.hideModal();
         this.showToast('Settings saved successfully!', 'success');
@@ -883,7 +1368,35 @@ Phone: +27 66 273 1270`;
     getApiConfig() {
         const model = this.model;
         
-        if (model.startsWith('openai/')) {
+        if (model.startsWith('anthropic-direct/')) {
+            // Anthropic direct API
+            const modelName = model.replace('anthropic-direct/', '');
+            return {
+                endpoint: 'https://api.anthropic.com/v1/messages',
+                apiKey: this.anthropicApiKey,
+                model: modelName,
+                isO1Model: false,
+                isAnthropicDirect: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': this.anthropicApiKey,
+                    'anthropic-version': '2023-06-01'
+                }
+            };
+        } else if (model.startsWith('google/')) {
+            // Google Gemini API
+            const modelName = model.replace('google/', '');
+            return {
+                endpoint: `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${this.googleApiKey}`,
+                apiKey: this.googleApiKey,
+                model: modelName,
+                isO1Model: false,
+                isGoogleGemini: true,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            };
+        } else if (model.startsWith('openai/')) {
             // OpenAI direct API
             const modelName = model.replace('openai/', '');
             
@@ -913,13 +1426,39 @@ Phone: +27 66 273 1270`;
                     'Authorization': `Bearer ${this.deepseekApiKey}`
                 }
             };
+        } else if (model.startsWith('grok/')) {
+            // xAI Grok API (OpenAI-compatible)
+            const modelName = model.replace('grok/', '');
+            return {
+                endpoint: 'https://api.x.ai/v1/chat/completions',
+                apiKey: this.grokApiKey,
+                model: modelName,
+                isO1Model: false,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.grokApiKey}`
+                }
+            };
+        } else if (model.startsWith('morph/')) {
+            // Morph AI API (OpenAI-compatible)
+            const modelName = model.replace('morph/', '');
+            return {
+                endpoint: 'https://api.morphllm.com/v1/chat/completions',
+                apiKey: this.morphApiKey,
+                model: modelName,
+                isO1Model: false,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.morphApiKey}`
+                }
+            };
         } else {
-            // OpenRouter API
+            // OpenRouter API (default)
             return {
                 endpoint: 'https://openrouter.ai/api/v1/chat/completions',
                 apiKey: this.openrouterApiKey,
                 model: model,
-                isO1Model: false,
+                isO1Model: model.includes('o1-') || model.includes('/o1'),
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${this.openrouterApiKey}`,
@@ -927,6 +1466,134 @@ Phone: +27 66 273 1270`;
                     'X-Title': 'Afrikaans to English Translator'
                 }
             };
+        }
+    }
+    
+    // Get max tokens limit based on model
+    getMaxTokensForModel(model, requestedTokens) {
+        // Models with specific completion token limits
+        const modelName = model.toLowerCase();
+        
+        // GPT-3.5-turbo variants: 4096 max output tokens
+        if (modelName.includes('gpt-3.5-turbo')) {
+            return Math.min(requestedTokens, 4000);
+        }
+        
+        // GPT-4o-mini: 16384 max output tokens
+        if (modelName.includes('gpt-4o-mini')) {
+            return Math.min(requestedTokens, 16000);
+        }
+        
+        // O1 models: 100000 max output tokens (very high limit)
+        if (modelName.includes('o1-mini') || modelName.includes('o1-preview') || modelName.includes('o1-pro')) {
+            return Math.min(requestedTokens, 65000);
+        }
+        
+        // GPT-4o: 16384 max output tokens
+        if (modelName.includes('gpt-4o')) {
+            return Math.min(requestedTokens, 16000);
+        }
+        
+        // GPT-4-turbo: 4096 max output tokens
+        if (modelName.includes('gpt-4-turbo')) {
+            return Math.min(requestedTokens, 4000);
+        }
+        
+        // Claude 3.5 Sonnet/Opus/Haiku: 8192 max output tokens (standard), but can be higher with extended thinking
+        if (modelName.includes('claude-3')) {
+            return Math.min(requestedTokens, 8192);
+        }
+        
+        // Claude 4 / Claude Sonnet 4: up to 64000 with extended thinking
+        if (modelName.includes('claude-4') || modelName.includes('claude-sonnet-4')) {
+            return Math.min(requestedTokens, 16000);
+        }
+        
+        // Gemini 1.5 Pro/Flash: 8192 max output tokens
+        if (modelName.includes('gemini-1.5') || modelName.includes('gemini-2')) {
+            return Math.min(requestedTokens, 8192);
+        }
+        
+        // DeepSeek models: 8192 max output tokens
+        if (modelName.includes('deepseek')) {
+            return Math.min(requestedTokens, 8192);
+        }
+        
+        // Grok models: 131072 context, generous output
+        if (modelName.includes('grok')) {
+            return Math.min(requestedTokens, 16000);
+        }
+        
+        // Morph models: default to generous limit
+        if (modelName.includes('morph')) {
+            return Math.min(requestedTokens, 16000);
+        }
+        
+        // Default: allow the requested tokens up to 16000
+        return Math.min(requestedTokens, 16000);
+    }
+    
+    // Format request body based on API provider
+    formatRequestBody(apiConfig, messages, maxTokens = 16000, temperature = 0.3) {
+        // Adjust max tokens based on model limits
+        const adjustedMaxTokens = this.getMaxTokensForModel(apiConfig.model, maxTokens);
+        
+        if (apiConfig.isAnthropicDirect) {
+            // Anthropic uses a different message format
+            const systemMessage = messages.find(m => m.role === 'system');
+            const userMessages = messages.filter(m => m.role !== 'system');
+            
+            return {
+                model: apiConfig.model,
+                max_tokens: adjustedMaxTokens,
+                system: systemMessage?.content || '',
+                messages: userMessages.map(m => ({
+                    role: m.role,
+                    content: m.content
+                }))
+            };
+        } else if (apiConfig.isGoogleGemini) {
+            // Google Gemini uses a different format
+            const systemInstruction = messages.find(m => m.role === 'system')?.content || '';
+            const userContent = messages.filter(m => m.role !== 'system')
+                .map(m => m.content).join('\n\n');
+            
+            return {
+                contents: [{
+                    parts: [{
+                        text: systemInstruction ? `${systemInstruction}\n\n${userContent}` : userContent
+                    }]
+                }],
+                generationConfig: {
+                    temperature: temperature,
+                    maxOutputTokens: adjustedMaxTokens
+                }
+            };
+        } else {
+            // OpenAI-compatible format (OpenAI, DeepSeek, OpenRouter)
+            const requestBody = {
+                model: apiConfig.model,
+                messages: messages,
+                max_tokens: adjustedMaxTokens
+            };
+            
+            // O1 models don't support temperature
+            if (!apiConfig.isO1Model) {
+                requestBody.temperature = temperature;
+            }
+            
+            return requestBody;
+        }
+    }
+    
+    // Parse response based on API provider
+    parseApiResponse(data, apiConfig) {
+        if (apiConfig.isAnthropicDirect) {
+            return data.content?.[0]?.text || '';
+        } else if (apiConfig.isGoogleGemini) {
+            return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        } else {
+            return data.choices?.[0]?.message?.content || '';
         }
     }
     
@@ -1199,24 +1866,24 @@ Always respond with valid JSON only, no additional text.`;
                 { role: 'user', content: `Translate the following Afrikaans text to English, provide comprehensive linguistic analysis, AND analyze the content's domain to provide intelligent insights, strategic recommendations, and alternative approaches:\n\n"${text}"` }
             ];
         
-        const requestBody = {
-            model: apiConfig.model,
-            messages: messages,
-            max_tokens: 4000
-        };
-        
-        // O1 models don't support temperature parameter
-        if (!apiConfig.isO1Model) {
-            requestBody.temperature = 0.3;
-        }
+        const requestBody = this.formatRequestBody(apiConfig, messages, 16000, 0.3);
         
         console.log('Translation API Call:', { endpoint: apiConfig.endpoint, model: apiConfig.model, isO1: apiConfig.isO1Model });
         
-        const response = await fetch(apiConfig.endpoint, {
-            method: 'POST',
-            headers: apiConfig.headers,
-            body: JSON.stringify(requestBody)
-        });
+        let response;
+        try {
+            response = await fetch(apiConfig.endpoint, {
+                method: 'POST',
+                headers: apiConfig.headers,
+                body: JSON.stringify(requestBody)
+            });
+        } catch (fetchError) {
+            // Handle CORS or network errors
+            if (apiConfig.isAnthropicDirect) {
+                throw new Error('Anthropic API cannot be called directly from browsers due to CORS restrictions. Please use OpenRouter instead - it provides access to Claude models and works in browsers. Go to Settings and select OpenRouter as your provider.');
+            }
+            throw new Error(`Network error: ${fetchError.message}. Please check your internet connection.`);
+        }
         
         if (!response.ok) {
             await this.handleApiError(response, apiConfig);
@@ -1224,7 +1891,7 @@ Always respond with valid JSON only, no additional text.`;
         
         const data = await response.json();
         console.log('Translation Response OK');
-        const content = data.choices[0]?.message?.content;
+        const content = this.parseApiResponse(data, apiConfig);
         
         if (!content) {
             throw new Error('No translation received from API');
@@ -1869,15 +2536,7 @@ Always respond with valid JSON only, no additional text.`;
                 { role: 'user', content: `Please enhance the following text. Provide improved sentence structure, suggestions for additions, and ideas to enhance the information:\n\n"${text}"` }
             ];
         
-        const requestBody = {
-            model: apiConfig.model,
-            messages: messages,
-            max_tokens: 4000
-        };
-        
-        if (!apiConfig.isO1Model) {
-            requestBody.temperature = 0.4;
-        }
+        const requestBody = this.formatRequestBody(apiConfig, messages, 16000, 0.4);
         
         const response = await fetch(apiConfig.endpoint, {
             method: 'POST',
@@ -1886,18 +2545,11 @@ Always respond with valid JSON only, no additional text.`;
         });
         
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            if (response.status === 401) {
-                throw new Error('Invalid API key. Please check your OpenRouter API key.');
-            } else if (response.status === 429) {
-                throw new Error('Rate limit exceeded. Please wait a moment and try again.');
-            } else {
-                throw new Error(errorData.error?.message || `API error: ${response.status}`);
-            }
+            await this.handleApiError(response, apiConfig);
         }
         
         const data = await response.json();
-        const content = data.choices[0]?.message?.content;
+        const content = this.parseApiResponse(data, apiConfig);
         
         if (!content) {
             throw new Error('No enhancement received from API');
@@ -2161,15 +2813,7 @@ Always respond with valid JSON only, no additional text.`;
                 { role: 'user', content: `Translate the following Afrikaans email text to English and format it as a professional email ready for copy-pasting:\n\n"${text}"` }
             ];
         
-        const requestBody = {
-            model: apiConfig.model,
-            messages: messages,
-            max_tokens: 3000
-        };
-        
-        if (!apiConfig.isO1Model) {
-            requestBody.temperature = 0.3;
-        }
+        const requestBody = this.formatRequestBody(apiConfig, messages, 8000, 0.3);
         
         const response = await fetch(apiConfig.endpoint, {
             method: 'POST',
@@ -2178,18 +2822,11 @@ Always respond with valid JSON only, no additional text.`;
         });
         
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            if (response.status === 401) {
-                throw new Error('Invalid API key. Please check your OpenRouter API key.');
-            } else if (response.status === 429) {
-                throw new Error('Rate limit exceeded. Please wait a moment and try again.');
-            } else {
-                throw new Error(errorData.error?.message || `API error: ${response.status}`);
-            }
+            await this.handleApiError(response, apiConfig);
         }
         
         const data = await response.json();
-        const content = data.choices[0]?.message?.content;
+        const content = this.parseApiResponse(data, apiConfig);
         
         if (!content) {
             throw new Error('No translation received from API');
@@ -2559,15 +3196,7 @@ Always respond with valid JSON only, no additional text.`;
                 { role: 'user', content: `${historyContext}Analyze the following input strategically. Provide structured improvement ideas under clear headings with bullet points. Then ask probing questions to continue exploring this topic:\n\n"${text}"` }
             ];
         
-        const requestBody = {
-            model: apiConfig.model,
-            messages: messages,
-            max_tokens: 6000
-        };
-        
-        if (!apiConfig.isO1Model) {
-            requestBody.temperature = 0.4;
-        }
+        const requestBody = this.formatRequestBody(apiConfig, messages, 16000, 0.4);
         
         const response = await fetch(apiConfig.endpoint, {
             method: 'POST',
@@ -2576,18 +3205,11 @@ Always respond with valid JSON only, no additional text.`;
         });
         
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            if (response.status === 401) {
-                throw new Error('Invalid API key. Please check your OpenRouter API key.');
-            } else if (response.status === 429) {
-                throw new Error('Rate limit exceeded. Please wait a moment and try again.');
-            } else {
-                throw new Error(errorData.error?.message || `API error: ${response.status}`);
-            }
+            await this.handleApiError(response, apiConfig);
         }
         
         const data = await response.json();
-        const content = data.choices[0]?.message?.content;
+        const content = this.parseApiResponse(data, apiConfig);
         
         if (!content) {
             throw new Error('No response received from AI Agent');
@@ -2960,6 +3582,626 @@ Always respond with valid JSON only, no additional text.`;
         this.showToast('Conversation history cleared', 'success');
     }
     
+    // ==========================================
+    // STRATEGY AI AGENT METHODS
+    // ==========================================
+    
+    async refineStrategy() {
+        const text = this.inputText.value.trim();
+        
+        if (!text) {
+            this.showToast('Please enter your strategic objectives or action plan to refine.', 'error');
+            return;
+        }
+        
+        // Validate API key for selected model
+        const apiConfig = this.getApiConfig();
+        if (!apiConfig.apiKey) {
+            this.showModal();
+            return;
+        }
+        
+        if (text.length > 15000) {
+            this.showToast('Text is too long. Maximum 15000 characters allowed for strategy mode.', 'error');
+            return;
+        }
+        
+        this.setLoading(true);
+        this.hideStrategy();
+        
+        try {
+            const result = await this.callStrategyAPI(text);
+            this.displayStrategyResponse(result);
+        } catch (error) {
+            console.error('Strategy agent error:', error);
+            this.showToast(error.message || 'Strategy refinement failed. Please try again.', 'error');
+            this.outputArea.innerHTML = '<div class="placeholder-text">Strategy refinement failed. Please try again.</div>';
+        } finally {
+            this.setLoading(false);
+        }
+    }
+    
+    async callStrategyAPI(text) {
+        // Build conversation history context
+        const historyContext = this.strategyConversationHistory.length > 0 
+            ? `\n\nPrevious strategy refinement context:\n${this.strategyConversationHistory.slice(-3).map((h, i) => `Input ${i+1}: ${h.input.substring(0, 200)}...\nRefined: ${h.summary}`).join('\n\n')}\n\n---\nContinuing refinement:`
+            : '';
+        
+        const systemPrompt = `You are a specialized Strategy Refinement AI Agent for Matanuska Transport Company operating in South Africa and Zimbabwe.
+
+COMPANY CONTEXT:
+- Company: Matanuska Transport
+- Industry: Transport and Logistics
+- Operations: South Africa and Zimbabwe cross-border transportation
+- Focus Areas: Fleet management, route optimization, cross-border logistics, delivery scheduling
+- Key Concerns: Budget planning, operational efficiency, regulatory compliance, vehicle maintenance
+
+YOUR PRIMARY MISSION:
+1. SIMPLIFY & SHORTEN: Transform verbose strategic objectives into clear, concise statements
+2. MAINTAIN MEANING: Preserve the strategic intent while reducing word count
+3. IMPROVE CLARITY: Make objectives actionable and measurable where possible
+4. INDUSTRY ALIGNMENT: Ensure alignment with transport industry best practices
+5. REGIONAL CONTEXT: Consider South Africa/Zimbabwe operational realities
+
+RESPONSE FORMAT - Always use this exact JSON structure:
+{
+    "summary": "Brief 2-3 sentence analysis of the input and what was refined",
+    
+    "refinedStrategy": {
+        "title": "Refined Strategic Plan",
+        "content": "The complete refined version of the strategic objectives. Each objective should be:\n- Concise (aim for 50% reduction in word count)\n- Clear and actionable\n- Measurable where possible\n- Formatted with bullet points and clear headings\n\nUse this format for each objective:\n**[Objective Name]**: [Concise description] | Target: [specific target if applicable] | Timeline: [if mentioned]"
+    },
+    
+    "comparison": [
+        {
+            "original": "The original verbose text",
+            "refined": "The simplified, shorter version",
+            "wordReduction": "65%",
+            "clarityImprovement": "What was improved"
+        }
+    ],
+    
+    "objectivesAnalysis": [
+        {
+            "objective": "Objective name",
+            "status": "clear|needs_work|vague",
+            "isMeasurable": true|false,
+            "isActionable": true|false,
+            "suggestions": ["Specific improvement suggestion"]
+        }
+    ],
+    
+    "clarityImprovements": [
+        {
+            "issue": "What made the original unclear",
+            "solution": "How it was fixed",
+            "example": "Before → After example"
+        }
+    ],
+    
+    "industryAlignment": {
+        "strengths": ["How the strategy aligns with transport best practices"],
+        "gaps": ["Missing industry considerations"],
+        "recommendations": ["Industry-specific improvements"]
+    },
+    
+    "budgetConsiderations": [
+        {
+            "item": "Budget-related aspect",
+            "consideration": "What to consider for budget planning",
+            "priority": "high|medium|low"
+        }
+    ],
+    
+    "regionalFactors": {
+        "southAfrica": ["SA-specific considerations"],
+        "zimbabwe": ["Zimbabwe-specific considerations"],
+        "crossBorder": ["Cross-border operational factors"]
+    },
+    
+    "refinedActions": [
+        {
+            "action": "Clear, concise action item",
+            "owner": "Suggested responsibility",
+            "timeline": "Suggested timeline",
+            "kpi": "How to measure success"
+        }
+    ],
+    
+    "followUpQuestions": [
+        {
+            "question": "Question to help further refine the strategy",
+            "purpose": "Why this question matters",
+            "category": "clarity|budget|operations|timeline|risk"
+        }
+    ]
+}
+
+REFINEMENT GUIDELINES:
+1. Cut unnecessary words: "in order to" → "to", "due to the fact that" → "because"
+2. Remove redundancy: Don't repeat the same idea in different words
+3. Use active voice: "Vehicles will be acquired" → "Acquire vehicles"
+4. Be specific: "improve performance" → "reduce delivery time by 20%"
+5. One idea per objective: Split compound objectives
+6. Start with action verbs: Expand, Reduce, Implement, Establish, Optimize
+
+TRANSPORT INDUSTRY TERMINOLOGY:
+- Fleet utilization, vehicle uptime, route optimization
+- Cross-border logistics, customs compliance, transit times
+- Maintenance schedules, fuel efficiency, driver management
+- Load optimization, delivery windows, service level agreements
+
+Always respond with valid JSON only, no additional text.`;
+
+        const apiConfig = this.getApiConfig();
+        
+        const messages = apiConfig.isO1Model 
+            ? [{ role: 'user', content: `${systemPrompt}\n\n---\n\n${historyContext}Please refine the following strategic objectives. Simplify, shorten, and improve clarity while maintaining the strategic intent:\n\n"${text}"` }]
+            : [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: `${historyContext}Please refine the following strategic objectives. Simplify, shorten, and improve clarity while maintaining the strategic intent:\n\n"${text}"` }
+            ];
+        
+        const requestBody = this.formatRequestBody(apiConfig, messages, 16000, 0.3);
+        
+        const response = await fetch(apiConfig.endpoint, {
+            method: 'POST',
+            headers: apiConfig.headers,
+            body: JSON.stringify(requestBody)
+        });
+        
+        if (!response.ok) {
+            await this.handleApiError(response, apiConfig);
+        }
+        
+        const data = await response.json();
+        const content = this.parseApiResponse(data, apiConfig);
+        
+        if (!content) {
+            throw new Error('No response received from Strategy Agent');
+        }
+        
+        try {
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid response format');
+        } catch (e) {
+            console.error('JSON parse error:', e);
+            throw new Error('Failed to parse Strategy Agent response');
+        }
+    }
+    
+    displayStrategyResponse(result) {
+        this.currentStrategyResponse = result;
+        
+        // Save to conversation history
+        const historyEntry = {
+            input: this.inputText.value.trim().substring(0, 500),
+            summary: result.summary || '',
+            timestamp: new Date().toISOString()
+        };
+        this.strategyConversationHistory.push(historyEntry);
+        if (this.strategyConversationHistory.length > 10) {
+            this.strategyConversationHistory = this.strategyConversationHistory.slice(-10);
+        }
+        localStorage.setItem('strategy_conversation_history', JSON.stringify(this.strategyConversationHistory));
+        
+        // Display summary in output area
+        if (result.summary) {
+            this.outputArea.innerHTML = `
+                <div class="translation-text" style="white-space: pre-wrap; line-height: 1.6;">
+                    <div class="strategy-summary-output">${this.escapeHtml(result.summary)}</div>
+                </div>`;
+        }
+        
+        // Show strategy section
+        this.strategySection.classList.add('visible');
+        
+        // Display summary
+        if (result.summary && this.strategySummarySection) {
+            this.strategySummarySection.classList.add('visible');
+            this.strategySummary.innerHTML = `<div class="strategy-summary-text">${this.escapeHtml(result.summary)}</div>`;
+        }
+        
+        // Display Refined Strategy (THE KEY FEATURE - copy-ready content)
+        if (result.refinedStrategy && this.refinedStrategySection) {
+            this.refinedStrategySection.classList.add('visible');
+            const refinedContent = result.refinedStrategy.content || '';
+            this.refinedStrategyContent.innerHTML = `
+                <div class="refined-strategy-text">${this.formatMarkdown(refinedContent)}</div>
+            `;
+            
+            // Set up copy button for refined strategy
+            if (this.copyRefinedBtn) {
+                this.copyRefinedBtn.onclick = () => this.copyRefinedStrategy();
+            }
+        } else if (this.refinedStrategySection) {
+            this.refinedStrategySection.classList.remove('visible');
+        }
+        
+        // Display Before/After Comparison
+        if (result.comparison && result.comparison.length > 0 && this.comparisonSection) {
+            this.comparisonSection.classList.add('visible');
+            this.comparisonContainer.innerHTML = result.comparison.map(comp => `
+                <div class="comparison-card">
+                    <div class="comparison-item original">
+                        <span class="comparison-label">📝 Original:</span>
+                        <p>${this.escapeHtml(comp.original)}</p>
+                    </div>
+                    <div class="comparison-arrow">→</div>
+                    <div class="comparison-item refined">
+                        <span class="comparison-label">✨ Refined:</span>
+                        <p>${this.escapeHtml(comp.refined)}</p>
+                    </div>
+                    <div class="comparison-stats">
+                        <span class="word-reduction">📉 ${comp.wordReduction} shorter</span>
+                        <span class="clarity-note">💡 ${this.escapeHtml(comp.clarityImprovement)}</span>
+                    </div>
+                </div>
+            `).join('');
+        } else if (this.comparisonSection) {
+            this.comparisonSection.classList.remove('visible');
+        }
+        
+        // Display Objectives Analysis
+        if (result.objectivesAnalysis && result.objectivesAnalysis.length > 0 && this.objectivesAnalysisSection) {
+            this.objectivesAnalysisSection.classList.add('visible');
+            this.objectivesAnalysis.innerHTML = result.objectivesAnalysis.map(obj => `
+                <div class="objective-card ${obj.status}">
+                    <div class="objective-header">
+                        <span class="objective-name">${this.escapeHtml(obj.objective)}</span>
+                        <span class="objective-status ${obj.status}">${obj.status === 'clear' ? '✅ Clear' : obj.status === 'needs_work' ? '⚠️ Needs Work' : '❓ Vague'}</span>
+                    </div>
+                    <div class="objective-badges">
+                        <span class="badge ${obj.isMeasurable ? 'good' : 'warning'}">${obj.isMeasurable ? '📊 Measurable' : '📊 Not Measurable'}</span>
+                        <span class="badge ${obj.isActionable ? 'good' : 'warning'}">${obj.isActionable ? '✓ Actionable' : '✗ Not Actionable'}</span>
+                    </div>
+                    ${obj.suggestions && obj.suggestions.length > 0 ? `
+                        <ul class="objective-suggestions">
+                            ${obj.suggestions.map(s => `<li>${this.escapeHtml(s)}</li>`).join('')}
+                        </ul>
+                    ` : ''}
+                </div>
+            `).join('');
+        } else if (this.objectivesAnalysisSection) {
+            this.objectivesAnalysisSection.classList.remove('visible');
+        }
+        
+        // Display Clarity Improvements
+        if (result.clarityImprovements && result.clarityImprovements.length > 0 && this.clarityImprovementsSection) {
+            this.clarityImprovementsSection.classList.add('visible');
+            this.clarityImprovements.innerHTML = result.clarityImprovements.map(imp => `
+                <div class="clarity-card">
+                    <div class="clarity-issue">⚠️ <strong>Issue:</strong> ${this.escapeHtml(imp.issue)}</div>
+                    <div class="clarity-solution">✅ <strong>Solution:</strong> ${this.escapeHtml(imp.solution)}</div>
+                    ${imp.example ? `<div class="clarity-example">📝 ${this.escapeHtml(imp.example)}</div>` : ''}
+                </div>
+            `).join('');
+        } else if (this.clarityImprovementsSection) {
+            this.clarityImprovementsSection.classList.remove('visible');
+        }
+        
+        // Display Industry Alignment
+        if (result.industryAlignment && this.industryAlignmentSection) {
+            this.industryAlignmentSection.classList.add('visible');
+            let alignmentHtml = '';
+            
+            if (result.industryAlignment.strengths && result.industryAlignment.strengths.length > 0) {
+                alignmentHtml += `<div class="alignment-group strengths">
+                    <h4>🚛 Industry Alignment Strengths</h4>
+                    <ul>${result.industryAlignment.strengths.map(s => `<li>${this.escapeHtml(s)}</li>`).join('')}</ul>
+                </div>`;
+            }
+            if (result.industryAlignment.gaps && result.industryAlignment.gaps.length > 0) {
+                alignmentHtml += `<div class="alignment-group gaps">
+                    <h4>⚠️ Missing Industry Considerations</h4>
+                    <ul>${result.industryAlignment.gaps.map(g => `<li>${this.escapeHtml(g)}</li>`).join('')}</ul>
+                </div>`;
+            }
+            if (result.industryAlignment.recommendations && result.industryAlignment.recommendations.length > 0) {
+                alignmentHtml += `<div class="alignment-group recommendations">
+                    <h4>💡 Industry Recommendations</h4>
+                    <ul>${result.industryAlignment.recommendations.map(r => `<li>${this.escapeHtml(r)}</li>`).join('')}</ul>
+                </div>`;
+            }
+            this.industryAlignment.innerHTML = alignmentHtml;
+        } else if (this.industryAlignmentSection) {
+            this.industryAlignmentSection.classList.remove('visible');
+        }
+        
+        // Display Budget Considerations
+        if (result.budgetConsiderations && result.budgetConsiderations.length > 0 && this.budgetImplicationsSection) {
+            this.budgetImplicationsSection.classList.add('visible');
+            this.budgetImplications.innerHTML = `<div class="budget-grid">${result.budgetConsiderations.map(b => `
+                <div class="budget-card ${b.priority}">
+                    <div class="budget-priority ${b.priority}">${b.priority === 'high' ? '🔴' : b.priority === 'medium' ? '🟡' : '🟢'} ${b.priority} priority</div>
+                    <div class="budget-item">${this.escapeHtml(b.item)}</div>
+                    <div class="budget-consideration">${this.escapeHtml(b.consideration)}</div>
+                </div>
+            `).join('')}</div>`;
+        } else if (this.budgetImplicationsSection) {
+            this.budgetImplicationsSection.classList.remove('visible');
+        }
+        
+        // Display Regional Considerations
+        if (result.regionalFactors && this.regionalSection) {
+            this.regionalSection.classList.add('visible');
+            let regionalHtml = '';
+            
+            if (result.regionalFactors.southAfrica && result.regionalFactors.southAfrica.length > 0) {
+                regionalHtml += `<div class="regional-group south-africa">
+                    <h4>🇿🇦 South Africa</h4>
+                    <ul>${result.regionalFactors.southAfrica.map(s => `<li>${this.escapeHtml(s)}</li>`).join('')}</ul>
+                </div>`;
+            }
+            if (result.regionalFactors.zimbabwe && result.regionalFactors.zimbabwe.length > 0) {
+                regionalHtml += `<div class="regional-group zimbabwe">
+                    <h4>🇿🇼 Zimbabwe</h4>
+                    <ul>${result.regionalFactors.zimbabwe.map(z => `<li>${this.escapeHtml(z)}</li>`).join('')}</ul>
+                </div>`;
+            }
+            if (result.regionalFactors.crossBorder && result.regionalFactors.crossBorder.length > 0) {
+                regionalHtml += `<div class="regional-group cross-border">
+                    <h4>🌍 Cross-Border Operations</h4>
+                    <ul>${result.regionalFactors.crossBorder.map(c => `<li>${this.escapeHtml(c)}</li>`).join('')}</ul>
+                </div>`;
+            }
+            this.regionalConsiderations.innerHTML = regionalHtml;
+        } else if (this.regionalSection) {
+            this.regionalSection.classList.remove('visible');
+        }
+        
+        // Display Refined Actions
+        if (result.refinedActions && result.refinedActions.length > 0 && this.strategyActionsSection) {
+            this.strategyActionsSection.classList.add('visible');
+            this.strategyActions.innerHTML = `<div class="actions-list">${result.refinedActions.map((action, index) => `
+                <div class="action-card">
+                    <div class="action-number">${index + 1}</div>
+                    <div class="action-details">
+                        <div class="action-text">${this.escapeHtml(action.action)}</div>
+                        <div class="action-meta">
+                            ${action.owner ? `<span class="action-owner">👤 ${this.escapeHtml(action.owner)}</span>` : ''}
+                            ${action.timeline ? `<span class="action-timeline">📅 ${this.escapeHtml(action.timeline)}</span>` : ''}
+                            ${action.kpi ? `<span class="action-kpi">📊 ${this.escapeHtml(action.kpi)}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('')}</div>`;
+        } else if (this.strategyActionsSection) {
+            this.strategyActionsSection.classList.remove('visible');
+        }
+        
+        // Display Follow-up Questions
+        if (result.followUpQuestions && result.followUpQuestions.length > 0 && this.strategyQuestionsSection) {
+            this.strategyQuestionsSection.classList.add('visible');
+            this.strategyQuestionsList.innerHTML = `
+                <div class="strategy-questions-intro">
+                    <span class="intro-icon">🎯</span>
+                    <span>Click a question to refine your strategy further:</span>
+                </div>
+                <div class="strategy-questions-grid">
+                    ${result.followUpQuestions.map(q => `
+                        <div class="strategy-question-card" onclick="document.getElementById('strategyFollowUpInput').value = '${this.escapeHtml(q.question).replace(/'/g, "\\'")}'; document.getElementById('strategyFollowUpInput').focus();">
+                            <span class="question-category-icon">${this.getStrategyCategoryIcon(q.category)}</span>
+                            <div class="question-details">
+                                <span class="question-text">${this.escapeHtml(q.question)}</span>
+                                <span class="question-purpose">${this.escapeHtml(q.purpose)}</span>
+                            </div>
+                            <span class="question-category-tag ${q.category}">${this.escapeHtml(q.category)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="follow-up-input-container">
+                    <input type="text" id="strategyFollowUpInput" class="follow-up-input" placeholder="Ask a question or paste additional strategy content..." />
+                    <button class="follow-up-submit-btn" id="strategyFollowUpSubmitBtn" title="Refine further">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            // Bind follow-up input events
+            const followUpInput = document.getElementById('strategyFollowUpInput');
+            const followUpSubmitBtn = document.getElementById('strategyFollowUpSubmitBtn');
+            
+            if (followUpInput && followUpSubmitBtn) {
+                followUpSubmitBtn.onclick = () => this.askStrategyFollowUp();
+                followUpInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        this.askStrategyFollowUp();
+                    }
+                });
+            }
+        } else if (this.strategyQuestionsSection) {
+            this.strategyQuestionsSection.classList.remove('visible');
+        }
+        
+        // Bind copy and clear buttons
+        if (this.copyStrategyBtn) {
+            this.copyStrategyBtn.onclick = () => this.copyStrategyResponse();
+        }
+        if (this.clearStrategyHistoryBtn) {
+            this.clearStrategyHistoryBtn.onclick = () => this.clearStrategyHistory();
+        }
+    }
+    
+    getStrategyCategoryIcon(category) {
+        const icons = {
+            'clarity': '💡',
+            'budget': '💰',
+            'operations': '⚙️',
+            'timeline': '📅',
+            'risk': '⚠️'
+        };
+        return icons[category] || '❓';
+    }
+    
+    async askStrategyFollowUp() {
+        const followUpInput = document.getElementById('strategyFollowUpInput');
+        if (!followUpInput) return;
+        
+        const question = followUpInput.value.trim();
+        if (!question) {
+            this.showToast('Please enter a question or additional content', 'error');
+            return;
+        }
+        
+        // Add context about what we're asking about
+        const contextualQuestion = `Regarding the previous strategy refinement, please address: ${question}`;
+        
+        // Set the main input and trigger the strategy agent
+        this.inputText.value = contextualQuestion;
+        followUpInput.value = '';
+        
+        // Scroll to top and trigger refinement
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        this.refineStrategy();
+    }
+    
+    async copyRefinedStrategy() {
+        if (!this.currentStrategyResponse || !this.currentStrategyResponse.refinedStrategy) {
+            this.showToast('No refined strategy to copy.', 'error');
+            return;
+        }
+        
+        const content = this.currentStrategyResponse.refinedStrategy.content;
+        
+        try {
+            await navigator.clipboard.writeText(content);
+            this.showToast('Refined strategy copied to clipboard!', 'success');
+        } catch (err) {
+            this.showToast('Failed to copy. Please select and copy manually.', 'error');
+        }
+    }
+    
+    async copyStrategyResponse() {
+        if (!this.currentStrategyResponse) {
+            this.showToast('No strategy analysis to copy.', 'error');
+            return;
+        }
+        
+        let text = '';
+        const r = this.currentStrategyResponse;
+        
+        text += `STRATEGY REFINEMENT ANALYSIS\n${'='.repeat(50)}\n`;
+        text += `Generated for: Matanuska Transport (SA/Zimbabwe Operations)\n\n`;
+        
+        if (r.summary) {
+            text += `SUMMARY\n${'-'.repeat(30)}\n${r.summary}\n\n`;
+        }
+        
+        if (r.refinedStrategy) {
+            text += `REFINED STRATEGY (Copy & Use)\n${'='.repeat(50)}\n`;
+            text += `${r.refinedStrategy.content}\n\n`;
+        }
+        
+        if (r.comparison?.length > 0) {
+            text += `BEFORE & AFTER COMPARISON\n${'-'.repeat(30)}\n`;
+            r.comparison.forEach((c, i) => {
+                text += `\n${i + 1}. Original: ${c.original}\n`;
+                text += `   Refined: ${c.refined}\n`;
+                text += `   (${c.wordReduction} shorter - ${c.clarityImprovement})\n`;
+            });
+            text += '\n';
+        }
+        
+        if (r.objectivesAnalysis?.length > 0) {
+            text += `OBJECTIVES ANALYSIS\n${'-'.repeat(30)}\n`;
+            r.objectivesAnalysis.forEach(obj => {
+                text += `• ${obj.objective}: ${obj.status.toUpperCase()}\n`;
+                text += `  Measurable: ${obj.isMeasurable ? 'Yes' : 'No'} | Actionable: ${obj.isActionable ? 'Yes' : 'No'}\n`;
+                if (obj.suggestions?.length > 0) {
+                    obj.suggestions.forEach(s => text += `  → ${s}\n`);
+                }
+            });
+            text += '\n';
+        }
+        
+        if (r.industryAlignment) {
+            text += `TRANSPORT INDUSTRY ALIGNMENT\n${'-'.repeat(30)}\n`;
+            if (r.industryAlignment.strengths?.length > 0) {
+                text += 'Strengths:\n';
+                r.industryAlignment.strengths.forEach(s => text += `  ✓ ${s}\n`);
+            }
+            if (r.industryAlignment.gaps?.length > 0) {
+                text += 'Gaps:\n';
+                r.industryAlignment.gaps.forEach(g => text += `  ⚠ ${g}\n`);
+            }
+            if (r.industryAlignment.recommendations?.length > 0) {
+                text += 'Recommendations:\n';
+                r.industryAlignment.recommendations.forEach(rec => text += `  → ${rec}\n`);
+            }
+            text += '\n';
+        }
+        
+        if (r.budgetConsiderations?.length > 0) {
+            text += `BUDGET CONSIDERATIONS\n${'-'.repeat(30)}\n`;
+            r.budgetConsiderations.forEach(b => {
+                text += `[${b.priority.toUpperCase()}] ${b.item}\n`;
+                text += `  ${b.consideration}\n`;
+            });
+            text += '\n';
+        }
+        
+        if (r.regionalFactors) {
+            text += `REGIONAL FACTORS (SA/ZIMBABWE)\n${'-'.repeat(30)}\n`;
+            if (r.regionalFactors.southAfrica?.length > 0) {
+                text += '🇿🇦 South Africa:\n';
+                r.regionalFactors.southAfrica.forEach(s => text += `  • ${s}\n`);
+            }
+            if (r.regionalFactors.zimbabwe?.length > 0) {
+                text += '🇿🇼 Zimbabwe:\n';
+                r.regionalFactors.zimbabwe.forEach(z => text += `  • ${z}\n`);
+            }
+            if (r.regionalFactors.crossBorder?.length > 0) {
+                text += '🌍 Cross-Border:\n';
+                r.regionalFactors.crossBorder.forEach(c => text += `  • ${c}\n`);
+            }
+            text += '\n';
+        }
+        
+        if (r.refinedActions?.length > 0) {
+            text += `REFINED ACTION ITEMS\n${'-'.repeat(30)}\n`;
+            r.refinedActions.forEach((a, i) => {
+                text += `${i + 1}. ${a.action}\n`;
+                if (a.owner) text += `   Owner: ${a.owner}\n`;
+                if (a.timeline) text += `   Timeline: ${a.timeline}\n`;
+                if (a.kpi) text += `   KPI: ${a.kpi}\n`;
+            });
+            text += '\n';
+        }
+        
+        try {
+            await navigator.clipboard.writeText(text);
+            this.showToast('Full strategy analysis copied to clipboard!', 'success');
+        } catch (err) {
+            this.showToast('Failed to copy. Please select and copy manually.', 'error');
+        }
+    }
+    
+    hideStrategy() {
+        this.strategySection?.classList.remove('visible');
+        this.strategySummarySection?.classList.remove('visible');
+        this.refinedStrategySection?.classList.remove('visible');
+        this.comparisonSection?.classList.remove('visible');
+        this.objectivesAnalysisSection?.classList.remove('visible');
+        this.clarityImprovementsSection?.classList.remove('visible');
+        this.industryAlignmentSection?.classList.remove('visible');
+        this.budgetImplicationsSection?.classList.remove('visible');
+        this.regionalSection?.classList.remove('visible');
+        this.strategyActionsSection?.classList.remove('visible');
+        this.strategyQuestionsSection?.classList.remove('visible');
+    }
+    
+    clearStrategyHistory() {
+        this.strategyConversationHistory = [];
+        localStorage.removeItem('strategy_conversation_history');
+        this.showToast('Strategy conversation history cleared', 'success');
+    }
+    
     async copyAgentResponse() {
         if (!this.currentAgentResponse) {
             this.showToast('No analysis to copy.', 'error');
@@ -3192,9 +4434,1405 @@ ${this.emailSignatureHTML}`;
         div.textContent = text;
         return div.innerHTML;
     }
+    
+    // ==================== CHAT MODE METHODS ====================
+    
+    toggleSidebar() {
+        this.chatSidebar?.classList.toggle('open');
+        this.sidebarToggle?.classList.toggle('shifted');
+    }
+    
+    toggleSystemPrompt() {
+        this.systemPromptContent?.classList.toggle('visible');
+        this.togglePromptBtn?.classList.toggle('rotated');
+    }
+    
+    saveSystemPrompt() {
+        if (this.systemPromptInput) {
+            this.systemPrompt = this.systemPromptInput.value;
+            localStorage.setItem('chat_system_prompt', this.systemPrompt);
+        }
+    }
+    
+    // Conversation Management
+    createNewChat() {
+        const chatId = 'chat_' + Date.now();
+        const newChat = {
+            id: chatId,
+            title: 'New Conversation',
+            messages: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        
+        this.chatConversations.unshift(newChat);
+        this.saveChatConversations();
+        this.loadChat(chatId);
+        this.renderConversationsList();
+        
+        // Clear welcome screen
+        if (this.chatWelcome) {
+            this.chatWelcome.style.display = 'flex';
+        }
+        
+        this.showToast('New conversation created', 'success');
+    }
+    
+    loadChat(chatId) {
+        const chat = this.chatConversations.find(c => c.id === chatId);
+        if (!chat) return;
+        
+        this.currentChatId = chatId;
+        this.currentChatMessages = chat.messages || [];
+        localStorage.setItem('current_chat_id', chatId);
+        
+        // Render messages
+        this.renderChatMessages();
+        this.renderConversationsList();
+        
+        // Show/hide welcome screen
+        if (this.chatWelcome) {
+            this.chatWelcome.style.display = this.currentChatMessages.length === 0 ? 'flex' : 'none';
+        }
+    }
+    
+    deleteChat(chatId) {
+        const index = this.chatConversations.findIndex(c => c.id === chatId);
+        if (index === -1) return;
+        
+        this.chatConversations.splice(index, 1);
+        this.saveChatConversations();
+        
+        // If deleted current chat, load another or create new
+        if (this.currentChatId === chatId) {
+            if (this.chatConversations.length > 0) {
+                this.loadChat(this.chatConversations[0].id);
+            } else {
+                this.createNewChat();
+            }
+        }
+        
+        this.renderConversationsList();
+        this.showToast('Conversation deleted', 'info');
+    }
+    
+    saveChatConversations() {
+        localStorage.setItem('chat_conversations', JSON.stringify(this.chatConversations));
+    }
+    
+    renderConversationsList() {
+        if (!this.conversationsList) return;
+        
+        const searchTerm = this.chatSearchInput?.value?.toLowerCase() || '';
+        
+        const filteredChats = this.chatConversations.filter(chat => {
+            const title = chat.title?.toLowerCase() || '';
+            const preview = chat.messages?.[0]?.content?.toLowerCase() || '';
+            return title.includes(searchTerm) || preview.includes(searchTerm);
+        });
+        
+        this.conversationsList.innerHTML = filteredChats.map(chat => {
+            const isActive = chat.id === this.currentChatId;
+            const preview = chat.messages?.[chat.messages.length - 1]?.content?.substring(0, 50) || 'Empty conversation';
+            const date = new Date(chat.updatedAt || chat.createdAt).toLocaleDateString();
+            
+            return `
+                <div class="conversation-item ${isActive ? 'active' : ''}" data-chat-id="${chat.id}">
+                    <div class="conv-title">${this.escapeHtml(chat.title)}</div>
+                    <div class="conv-preview">${this.escapeHtml(preview)}...</div>
+                    <div class="conv-date">${date}</div>
+                    <div class="conv-actions">
+                        <button class="conv-action-btn rename" data-action="rename" title="Rename">✏️</button>
+                        <button class="conv-action-btn delete" data-action="delete" title="Delete">🗑️</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        // Add click handlers
+        this.conversationsList.querySelectorAll('.conversation-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (e.target.closest('.conv-action-btn')) return;
+                this.loadChat(item.dataset.chatId);
+            });
+            
+            item.querySelector('.conv-action-btn.delete')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (confirm('Delete this conversation?')) {
+                    this.deleteChat(item.dataset.chatId);
+                }
+            });
+            
+            item.querySelector('.conv-action-btn.rename')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const newTitle = prompt('Enter new title:', this.chatConversations.find(c => c.id === item.dataset.chatId)?.title);
+                if (newTitle) {
+                    this.renameChat(item.dataset.chatId, newTitle);
+                }
+            });
+        });
+    }
+    
+    renameChat(chatId, newTitle) {
+        const chat = this.chatConversations.find(c => c.id === chatId);
+        if (chat) {
+            chat.title = newTitle;
+            this.saveChatConversations();
+            this.renderConversationsList();
+        }
+    }
+    
+    filterConversations() {
+        this.renderConversationsList();
+    }
+    
+    // Message Rendering
+    renderChatMessages() {
+        if (!this.chatMessages) return;
+        
+        // Keep welcome screen if no messages
+        const welcomeHtml = this.chatWelcome ? this.chatWelcome.outerHTML : '';
+        
+        this.chatMessages.innerHTML = this.currentChatMessages.map((msg, index) => {
+            return this.createMessageBubble(msg, index);
+        }).join('');
+        
+        // Re-add welcome if needed
+        if (this.currentChatMessages.length === 0 && welcomeHtml) {
+            this.chatMessages.innerHTML = welcomeHtml;
+            this.chatWelcome = document.getElementById('chatWelcome');
+        }
+        
+        // Scroll to bottom
+        this.scrollToBottom();
+        
+        // Apply syntax highlighting
+        this.applySyntaxHighlighting();
+    }
+    
+    createMessageBubble(msg, index) {
+        const isUser = msg.role === 'user';
+        const avatarIcon = isUser 
+            ? '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>'
+            : '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>';
+        
+        let content = msg.content;
+        
+        // Parse markdown for assistant messages
+        if (!isUser && typeof marked !== 'undefined') {
+            try {
+                content = marked.parse(content);
+            } catch (e) {
+                content = this.escapeHtml(content);
+            }
+        } else {
+            content = this.escapeHtml(content).replace(/\n/g, '<br>');
+        }
+        
+        // Add image if present
+        let imageHtml = '';
+        if (msg.image) {
+            imageHtml = `<img src="${msg.image}" class="message-image" alt="Uploaded image">`;
+        }
+        
+        const timestamp = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : '';
+        const model = msg.model || '';
+        
+        return `
+            <div class="message ${isUser ? 'user' : 'assistant'}" data-index="${index}">
+                <div class="message-avatar">${avatarIcon}</div>
+                <div class="message-content">
+                    ${imageHtml}
+                    <div class="message-bubble">${content}</div>
+                    <div class="message-meta">
+                        <span class="message-time">${timestamp}</span>
+                        ${model ? `<span class="message-model">${model}</span>` : ''}
+                    </div>
+                    <div class="message-actions">
+                        <button class="message-action-btn" data-action="copy" title="Copy">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                            Copy
+                        </button>
+                        ${!isUser ? `
+                            <button class="message-action-btn" data-action="regenerate" title="Regenerate">
+                                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                                Regenerate
+                            </button>
+                        ` : ''}
+                        <button class="message-action-btn" data-action="speak" title="Read aloud">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+                            Speak
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    applySyntaxHighlighting() {
+        if (typeof hljs !== 'undefined') {
+            this.chatMessages?.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        }
+    }
+    
+    scrollToBottom() {
+        if (this.chatMessages) {
+            this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+        }
+    }
+    
+    // Image Upload
+    handleImageUpload(event) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            this.showToast('Please upload an image file', 'error');
+            return;
+        }
+        
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            this.showToast('Image must be less than 10MB', 'error');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            this.pendingImage = e.target.result;
+            if (this.imagePreview) this.imagePreview.src = this.pendingImage;
+            if (this.imagePreviewContainer) this.imagePreviewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    removeUploadedImage() {
+        this.pendingImage = null;
+        if (this.imagePreviewContainer) this.imagePreviewContainer.style.display = 'none';
+        if (this.chatImageInput) this.chatImageInput.value = '';
+    }
+    
+    // Send Message
+    async sendChatMessage() {
+        const content = this.chatInput?.value?.trim();
+        if (!content && !this.pendingImage) return;
+        
+        // Create new chat if none exists
+        if (!this.currentChatId) {
+            this.createNewChat();
+        }
+        
+        // Hide welcome screen
+        if (this.chatWelcome) {
+            this.chatWelcome.style.display = 'none';
+        }
+        
+        // Create user message
+        const userMessage = {
+            role: 'user',
+            content: content,
+            image: this.pendingImage,
+            timestamp: new Date().toISOString()
+        };
+        
+        // Add to messages
+        this.currentChatMessages.push(userMessage);
+        this.renderChatMessages();
+        
+        // Clear input
+        if (this.chatInput) {
+            this.chatInput.value = '';
+            this.chatInput.style.height = 'auto';
+        }
+        this.removeUploadedImage();
+        
+        // Update chat title if first message
+        this.updateChatTitle(content);
+        
+        // Show typing indicator
+        this.showTypingIndicator();
+        
+        // Send to API with streaming
+        await this.streamChatResponse();
+    }
+    
+    updateChatTitle(content) {
+        const chat = this.chatConversations.find(c => c.id === this.currentChatId);
+        if (chat && (chat.title === 'New Conversation' || !chat.title)) {
+            chat.title = content.substring(0, 40) + (content.length > 40 ? '...' : '');
+            this.saveChatConversations();
+            this.renderConversationsList();
+        }
+    }
+    
+    showTypingIndicator() {
+        const indicator = document.createElement('div');
+        indicator.className = 'message assistant typing';
+        indicator.id = 'typingIndicator';
+        indicator.innerHTML = `
+            <div class="message-avatar">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+            </div>
+            <div class="message-content">
+                <div class="typing-indicator">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        `;
+        this.chatMessages?.appendChild(indicator);
+        this.scrollToBottom();
+    }
+    
+    hideTypingIndicator() {
+        document.getElementById('typingIndicator')?.remove();
+    }
+    
+    // Streaming Response
+    async streamChatResponse() {
+        const apiConfig = this.getApiConfig();
+        
+        // Build messages array
+        const messages = [];
+        
+        // Add system prompt
+        const systemContent = this.systemPrompt || 'You are a helpful AI assistant. Provide clear, accurate, and thoughtful responses.';
+        if (!apiConfig.isO1Model) {
+            messages.push({ role: 'system', content: systemContent });
+        }
+        
+        // Add conversation history (last 20 messages for context)
+        const historyMessages = this.currentChatMessages.slice(-20);
+        for (const msg of historyMessages) {
+            let content = msg.content;
+            
+            // Handle images for vision models
+            if (msg.image && this.isVisionModel(apiConfig.model)) {
+                if (apiConfig.isGoogleGemini) {
+                    // Gemini format
+                    content = [
+                        { text: msg.content },
+                        { inline_data: { mime_type: 'image/jpeg', data: msg.image.split(',')[1] } }
+                    ];
+                } else {
+                    // OpenAI/Anthropic format
+                    content = [
+                        { type: 'text', text: msg.content },
+                        { type: 'image_url', image_url: { url: msg.image } }
+                    ];
+                }
+            }
+            
+            messages.push({ role: msg.role, content: content });
+        }
+        
+        // For O1 models, prepend system to first user message
+        if (apiConfig.isO1Model) {
+            if (messages.length > 0 && messages[0].role === 'user') {
+                messages[0].content = `${systemContent}\n\n---\n\n${messages[0].content}`;
+            }
+        }
+        
+        try {
+            this.isStreaming = true;
+            if (this.stopGenerationBtn) this.stopGenerationBtn.style.display = 'flex';
+            
+            // Check if provider supports streaming
+            const supportsStreaming = !apiConfig.isGoogleGemini && !apiConfig.isO1Model;
+            
+            if (supportsStreaming) {
+                await this.fetchWithStreaming(apiConfig, messages);
+            } else {
+                await this.fetchWithoutStreaming(apiConfig, messages);
+            }
+            
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                this.showToast('Generation stopped', 'info');
+            } else {
+                console.error('Chat error:', error);
+                this.showToast('Error: ' + error.message, 'error');
+                this.hideTypingIndicator();
+            }
+        } finally {
+            this.isStreaming = false;
+            if (this.stopGenerationBtn) this.stopGenerationBtn.style.display = 'none';
+            this.saveChatToStorage();
+        }
+    }
+    
+    isVisionModel(model) {
+        const visionModels = [
+            'gpt-4o', 'gpt-4-vision', 'gpt-4-turbo',
+            'claude-3', 'claude-3.5',
+            'gemini-1.5', 'gemini-2',
+            'grok-2-vision', 'grok-vision'
+        ];
+        const modelLower = model.toLowerCase();
+        return visionModels.some(vm => modelLower.includes(vm));
+    }
+    
+    async fetchWithStreaming(apiConfig, messages) {
+        this.streamController = new AbortController();
+        
+        const requestBody = {
+            model: apiConfig.model,
+            messages: messages,
+            max_tokens: 16000,
+            stream: true
+        };
+        
+        if (!apiConfig.isO1Model) {
+            requestBody.temperature = 0.7;
+        }
+        
+        // For Anthropic direct, format differently
+        if (apiConfig.isAnthropicDirect) {
+            const systemMessage = messages.find(m => m.role === 'system');
+            const userMessages = messages.filter(m => m.role !== 'system');
+            
+            requestBody.system = systemMessage?.content || '';
+            requestBody.messages = userMessages;
+            delete requestBody.temperature;
+        }
+        
+        const response = await fetch(apiConfig.endpoint, {
+            method: 'POST',
+            headers: apiConfig.headers,
+            body: JSON.stringify(requestBody),
+            signal: this.streamController.signal
+        });
+        
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ error: { message: response.statusText } }));
+            throw new Error(error.error?.message || 'API request failed');
+        }
+        
+        this.hideTypingIndicator();
+        
+        // Create assistant message element
+        const assistantMessage = {
+            role: 'assistant',
+            content: '',
+            timestamp: new Date().toISOString(),
+            model: apiConfig.model.split('/').pop()
+        };
+        this.currentChatMessages.push(assistantMessage);
+        
+        const messageIndex = this.currentChatMessages.length - 1;
+        const messageHtml = this.createMessageBubble(assistantMessage, messageIndex);
+        this.chatMessages.insertAdjacentHTML('beforeend', messageHtml);
+        
+        const messageBubble = this.chatMessages.querySelector(`.message[data-index="${messageIndex}"] .message-bubble`);
+        
+        // Process stream
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullContent = '';
+        
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+            
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = line.slice(6);
+                    if (data === '[DONE]') continue;
+                    
+                    try {
+                        const json = JSON.parse(data);
+                        let content = '';
+                        
+                        if (apiConfig.isAnthropicDirect) {
+                            content = json.delta?.text || '';
+                        } else {
+                            content = json.choices?.[0]?.delta?.content || '';
+                        }
+                        
+                        if (content) {
+                            fullContent += content;
+                            assistantMessage.content = fullContent;
+                            
+                            // Update UI with markdown
+                            if (typeof marked !== 'undefined') {
+                                messageBubble.innerHTML = marked.parse(fullContent) + '<span class="streaming-cursor"></span>';
+                            } else {
+                                messageBubble.innerHTML = this.escapeHtml(fullContent).replace(/\n/g, '<br>') + '<span class="streaming-cursor"></span>';
+                            }
+                            
+                            this.scrollToBottom();
+                        }
+                    } catch (e) {
+                        // Ignore parse errors
+                    }
+                }
+            }
+        }
+        
+        // Remove cursor and apply final formatting
+        if (messageBubble) {
+            if (typeof marked !== 'undefined') {
+                messageBubble.innerHTML = marked.parse(fullContent);
+            } else {
+                messageBubble.innerHTML = this.escapeHtml(fullContent).replace(/\n/g, '<br>');
+            }
+            this.applySyntaxHighlighting();
+        }
+        
+        // Track token usage (rough estimate)
+        const inputTokens = messages.reduce((sum, m) => sum + Math.ceil((m.content?.length || 0) / 4), 0);
+        const outputTokens = Math.ceil(fullContent.length / 4);
+        this.trackTokenUsage(inputTokens, outputTokens);
+        
+        // Update chat header
+        this.updateChatHeader();
+        
+        // Show follow-up suggestions for longer responses
+        if (fullContent.length > 200) {
+            const suggestions = this.generateFollowupSuggestions(fullContent);
+            this.showFollowupSuggestions(suggestions);
+        }
+        
+        // Bind message actions
+        this.bindMessageActions();
+    }
+    
+    async fetchWithoutStreaming(apiConfig, messages) {
+        const requestBody = this.formatRequestBody(apiConfig, messages, 16000, 0.7);
+        
+        const response = await fetch(apiConfig.endpoint, {
+            method: 'POST',
+            headers: apiConfig.headers,
+            body: JSON.stringify(requestBody)
+        });
+        
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ error: { message: response.statusText } }));
+            throw new Error(error.error?.message || 'API request failed');
+        }
+        
+        const data = await response.json();
+        const content = this.parseApiResponse(data, apiConfig);
+        
+        this.hideTypingIndicator();
+        
+        // Create assistant message
+        const assistantMessage = {
+            role: 'assistant',
+            content: content,
+            timestamp: new Date().toISOString(),
+            model: apiConfig.model.split('/').pop()
+        };
+        this.currentChatMessages.push(assistantMessage);
+        
+        this.renderChatMessages();
+        this.bindMessageActions();
+    }
+    
+    bindMessageActions() {
+        this.chatMessages?.querySelectorAll('.message-action-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const action = btn.dataset.action;
+                const messageEl = btn.closest('.message');
+                const index = parseInt(messageEl.dataset.index);
+                const message = this.currentChatMessages[index];
+                
+                if (action === 'copy') {
+                    navigator.clipboard.writeText(message.content);
+                    this.showToast('Copied to clipboard', 'success');
+                } else if (action === 'regenerate') {
+                    this.regenerateMessage(index);
+                } else if (action === 'speak') {
+                    this.speakText(message.content);
+                }
+            });
+        });
+    }
+    
+    async regenerateMessage(index) {
+        // Remove messages from index onwards
+        this.currentChatMessages = this.currentChatMessages.slice(0, index);
+        this.renderChatMessages();
+        
+        // Re-send to get new response
+        this.showTypingIndicator();
+        await this.streamChatResponse();
+    }
+    
+    speakText(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1;
+            utterance.pitch = 1;
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+    
+    stopStreaming() {
+        if (this.streamController) {
+            this.streamController.abort();
+            this.streamController = null;
+        }
+        this.isStreaming = false;
+        if (this.stopGenerationBtn) this.stopGenerationBtn.style.display = 'none';
+        this.hideTypingIndicator();
+    }
+    
+    saveChatToStorage() {
+        const chat = this.chatConversations.find(c => c.id === this.currentChatId);
+        if (chat) {
+            chat.messages = this.currentChatMessages;
+            chat.updatedAt = new Date().toISOString();
+            this.saveChatConversations();
+        }
+    }
+    
+    updateTokenCount() {
+        const text = this.chatInput?.value || '';
+        // Rough estimate: ~4 characters per token
+        const tokens = Math.ceil(text.length / 4);
+        if (this.tokenCounter) {
+            this.tokenCounter.textContent = `~${tokens} tokens`;
+        }
+    }
+    
+    toggleChatSpeechRecognition() {
+        if (!this.recognition) {
+            this.initSpeechRecognition();
+        }
+        
+        if (this.isRecording) {
+            this.recognition?.stop();
+        } else {
+            this.recognition?.start();
+        }
+    }
+    
+    // Export/Import
+    exportChats() {
+        const data = {
+            conversations: this.chatConversations,
+            exportedAt: new Date().toISOString()
+        };
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `chat-export-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        this.showToast('Chats exported successfully', 'success');
+    }
+    
+    importChats() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        
+        input.onchange = (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.conversations && Array.isArray(data.conversations)) {
+                        // Merge with existing conversations
+                        const existingIds = new Set(this.chatConversations.map(c => c.id));
+                        const newChats = data.conversations.filter(c => !existingIds.has(c.id));
+                        
+                        this.chatConversations = [...newChats, ...this.chatConversations];
+                        this.saveChatConversations();
+                        this.renderConversationsList();
+                        
+                        this.showToast(`Imported ${newChats.length} conversations`, 'success');
+                    }
+                } catch (err) {
+                    this.showToast('Invalid import file', 'error');
+                }
+            };
+            reader.readAsText(file);
+        };
+        
+        input.click();
+    }
+
+    // ==================== ADVANCED FEATURES ====================
+    
+    initAdvancedFeatures() {
+        // Initialize slash commands
+        this.initSlashCommands();
+        
+        // Initialize keyboard shortcuts
+        this.initKeyboardShortcuts();
+        
+        // Initialize theme toggle
+        this.initThemeToggle();
+        
+        // Initialize token tracking
+        this.initTokenTracking();
+        
+        // Initialize follow-up suggestions
+        this.initFollowupSuggestions();
+        
+        // Update chat header bar
+        this.initChatHeader();
+    }
+    
+    // ==================== SLASH COMMANDS ====================
+    
+    initSlashCommands() {
+        this.slashCommandsMenu = document.getElementById('slashCommandsMenu');
+        
+        this.slashCommands = [
+            { command: '/clear', label: 'Clear conversation', icon: '🗑️', description: 'Clear all messages in current chat' },
+            { command: '/system', label: 'Set system prompt', icon: '⚙️', description: 'Configure AI behavior' },
+            { command: '/export', label: 'Export chat', icon: '📤', description: 'Download conversation as file' },
+            { command: '/model', label: 'Change model', icon: '🤖', description: 'Switch AI model' },
+            { command: '/summarize', label: 'Summarize chat', icon: '📝', description: 'Get a summary of current conversation' },
+            { command: '/fork', label: 'Fork conversation', icon: '🔀', description: 'Create a branch from this point' },
+            { command: '/code', label: 'Code mode', icon: '💻', description: 'Enable code-focused responses' },
+            { command: '/translate', label: 'Translation mode', icon: '🌐', description: 'Enable translation focus' },
+            { command: '/image', label: 'Generate image prompt', icon: '🎨', description: 'Create an image generation prompt' },
+            { command: '/help', label: 'Show help', icon: '❓', description: 'Display available commands' }
+        ];
+        
+        if (this.chatInput) {
+            this.chatInput.addEventListener('input', (e) => this.handleSlashInput(e));
+            this.chatInput.addEventListener('keydown', (e) => this.handleSlashKeydown(e));
+        }
+        
+        // Close on click outside
+        document.addEventListener('click', (e) => {
+            if (this.slashCommandsMenu && !this.slashCommandsMenu.contains(e.target) && e.target !== this.chatInput) {
+                this.hideSlashCommands();
+            }
+        });
+    }
+    
+    handleSlashInput(e) {
+        const value = this.chatInput.value;
+        const cursorPos = this.chatInput.selectionStart;
+        
+        // Check if typing at start or after space with /
+        const beforeCursor = value.substring(0, cursorPos);
+        const slashMatch = beforeCursor.match(/(?:^|\s)(\/\w*)$/);
+        
+        if (slashMatch) {
+            this.showSlashCommands(slashMatch[1]);
+        } else {
+            this.hideSlashCommands();
+        }
+    }
+    
+    handleSlashKeydown(e) {
+        if (!this.slashCommandsMenu || !this.slashCommandsMenu.classList.contains('visible')) return;
+        
+        const items = this.slashCommandsMenu.querySelectorAll('.slash-command-item');
+        const selectedIndex = Array.from(items).findIndex(item => item.classList.contains('selected'));
+        
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                this.selectSlashCommand(Math.min(selectedIndex + 1, items.length - 1));
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                this.selectSlashCommand(Math.max(selectedIndex - 1, 0));
+                break;
+            case 'Enter':
+            case 'Tab':
+                if (selectedIndex >= 0) {
+                    e.preventDefault();
+                    this.executeSlashCommand(this.slashCommands[selectedIndex].command);
+                }
+                break;
+            case 'Escape':
+                this.hideSlashCommands();
+                break;
+        }
+    }
+    
+    showSlashCommands(filter = '/') {
+        if (!this.slashCommandsMenu) return;
+        
+        const filterText = filter.toLowerCase();
+        const filtered = this.slashCommands.filter(cmd => 
+            cmd.command.toLowerCase().includes(filterText) || 
+            cmd.label.toLowerCase().includes(filterText)
+        );
+        
+        if (filtered.length === 0) {
+            this.hideSlashCommands();
+            return;
+        }
+        
+        this.slashCommandsMenu.innerHTML = filtered.map((cmd, index) => `
+            <div class="slash-command-item ${index === 0 ? 'selected' : ''}" data-command="${cmd.command}">
+                <span class="slash-icon">${cmd.icon}</span>
+                <div class="slash-content">
+                    <span class="slash-label">${cmd.command}</span>
+                    <span class="slash-description">${cmd.description}</span>
+                </div>
+            </div>
+        `).join('');
+        
+        // Add click handlers
+        this.slashCommandsMenu.querySelectorAll('.slash-command-item').forEach(item => {
+            item.addEventListener('click', () => {
+                this.executeSlashCommand(item.dataset.command);
+            });
+            item.addEventListener('mouseenter', () => {
+                this.slashCommandsMenu.querySelectorAll('.slash-command-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+            });
+        });
+        
+        this.slashCommandsMenu.classList.add('visible');
+    }
+    
+    hideSlashCommands() {
+        if (this.slashCommandsMenu) {
+            this.slashCommandsMenu.classList.remove('visible');
+        }
+    }
+    
+    selectSlashCommand(index) {
+        const items = this.slashCommandsMenu.querySelectorAll('.slash-command-item');
+        items.forEach((item, i) => {
+            item.classList.toggle('selected', i === index);
+        });
+    }
+    
+    executeSlashCommand(command) {
+        this.hideSlashCommands();
+        
+        // Clear the slash command from input
+        if (this.chatInput) {
+            this.chatInput.value = '';
+        }
+        
+        switch (command) {
+            case '/clear':
+                this.clearCurrentChat();
+                break;
+            case '/system':
+                this.toggleSystemPrompt();
+                this.systemPromptInput?.focus();
+                break;
+            case '/export':
+                this.exportCurrentChat();
+                break;
+            case '/model':
+                this.showModal();
+                break;
+            case '/summarize':
+                this.summarizeConversation();
+                break;
+            case '/fork':
+                this.forkConversation();
+                break;
+            case '/code':
+                this.enableCodeMode();
+                break;
+            case '/translate':
+                this.enableTranslateMode();
+                break;
+            case '/image':
+                this.generateImagePrompt();
+                break;
+            case '/help':
+                this.showCommandsHelp();
+                break;
+        }
+    }
+    
+    clearCurrentChat() {
+        if (confirm('Clear all messages in this conversation?')) {
+            this.currentChatMessages = [];
+            this.renderChatMessages();
+            this.saveChatToStorage();
+            if (this.chatWelcome) this.chatWelcome.style.display = 'flex';
+            this.showToast('Conversation cleared', 'info');
+        }
+    }
+    
+    exportCurrentChat() {
+        const chat = this.chatConversations.find(c => c.id === this.currentChatId);
+        if (!chat) return;
+        
+        const data = {
+            title: chat.title,
+            messages: chat.messages,
+            exportedAt: new Date().toISOString()
+        };
+        
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${chat.title.replace(/[^a-z0-9]/gi, '_')}-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        this.showToast('Chat exported', 'success');
+    }
+    
+    async summarizeConversation() {
+        if (this.currentChatMessages.length === 0) {
+            this.showToast('No messages to summarize', 'warning');
+            return;
+        }
+        
+        // Add a system message asking for summary
+        const summaryRequest = 'Please provide a brief summary of our conversation so far, highlighting the key points and any conclusions or action items.';
+        
+        this.chatInput.value = summaryRequest;
+        this.sendChatMessage();
+    }
+    
+    forkConversation() {
+        const currentChat = this.chatConversations.find(c => c.id === this.currentChatId);
+        if (!currentChat) return;
+        
+        const forkedChat = {
+            id: 'chat_' + Date.now(),
+            title: `${currentChat.title} (Fork)`,
+            messages: [...this.currentChatMessages],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            forkedFrom: this.currentChatId
+        };
+        
+        this.chatConversations.unshift(forkedChat);
+        this.saveChatConversations();
+        this.loadChat(forkedChat.id);
+        this.renderConversationsList();
+        
+        this.showToast('Conversation forked', 'success');
+    }
+    
+    enableCodeMode() {
+        this.systemPromptInput.value = this.promptTemplates.coder;
+        this.saveSystemPrompt();
+        this.showToast('Code mode enabled', 'success');
+    }
+    
+    enableTranslateMode() {
+        this.systemPromptInput.value = this.promptTemplates.translator;
+        this.saveSystemPrompt();
+        this.showToast('Translation mode enabled', 'success');
+    }
+    
+    generateImagePrompt() {
+        this.chatInput.value = 'Generate a detailed image prompt for an AI image generator. The subject should be: ';
+        this.chatInput.focus();
+        this.chatInput.setSelectionRange(this.chatInput.value.length, this.chatInput.value.length);
+    }
+    
+    showCommandsHelp() {
+        const helpText = this.slashCommands.map(cmd => 
+            `**${cmd.command}** - ${cmd.description}`
+        ).join('\n');
+        
+        // Create a help message bubble
+        const helpMessage = {
+            role: 'assistant',
+            content: `## Available Commands\n\n${helpText}\n\n*Type a command or use the menu that appears when you type /*`,
+            timestamp: new Date().toISOString()
+        };
+        
+        this.currentChatMessages.push(helpMessage);
+        this.renderChatMessages();
+    }
+    
+    // ==================== KEYBOARD SHORTCUTS ====================
+    
+    initKeyboardShortcuts() {
+        this.keyboardShortcutsModal = document.getElementById('keyboardShortcutsModal');
+        
+        // Bind close button
+        document.getElementById('closeShortcutsBtn')?.addEventListener('click', () => this.toggleShortcutsModal());
+        
+        // Bind shortcuts button in sidebar
+        document.getElementById('keyboardShortcutsBtn')?.addEventListener('click', () => this.toggleShortcutsModal());
+        
+        // Click outside to close
+        this.keyboardShortcutsModal?.addEventListener('click', (e) => {
+            if (e.target === this.keyboardShortcutsModal) {
+                this.toggleShortcutsModal();
+            }
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            // Only trigger if not in an input/textarea (except for specific shortcuts)
+            const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+            
+            // Ctrl/Cmd shortcuts work everywhere
+            if (e.ctrlKey || e.metaKey) {
+                switch (e.key.toLowerCase()) {
+                    case 'n':
+                        if (this.currentMode === 'chat') {
+                            e.preventDefault();
+                            this.createNewChat();
+                        }
+                        break;
+                    case 'b':
+                        if (this.currentMode === 'chat') {
+                            e.preventDefault();
+                            this.toggleSidebar();
+                        }
+                        break;
+                    case 'k':
+                        if (this.currentMode === 'chat') {
+                            e.preventDefault();
+                            this.focusSearchConversations();
+                        }
+                        break;
+                    case 'd':
+                        e.preventDefault();
+                        this.toggleTheme();
+                        break;
+                    case '/':
+                    case '?':
+                        e.preventDefault();
+                        this.toggleShortcutsModal();
+                        break;
+                }
+            }
+            
+            // Escape key
+            if (e.key === 'Escape') {
+                // Stop streaming
+                if (this.isStreaming) {
+                    this.stopStreaming();
+                }
+                // Close modals
+                if (this.keyboardShortcutsModal?.classList.contains('visible')) {
+                    this.toggleShortcutsModal();
+                }
+                if (this.apiKeyModal?.classList.contains('visible')) {
+                    this.hideModal();
+                }
+                // Close slash commands
+                this.hideSlashCommands();
+            }
+            
+            // Focus chat input with / when not typing
+            if (!isTyping && e.key === '/' && this.currentMode === 'chat') {
+                e.preventDefault();
+                this.chatInput?.focus();
+                this.chatInput.value = '/';
+                this.showSlashCommands('/');
+            }
+        });
+    }
+    
+    toggleShortcutsModal() {
+        if (this.keyboardShortcutsModal) {
+            this.keyboardShortcutsModal.classList.toggle('visible');
+        }
+    }
+    
+    focusSearchConversations() {
+        if (this.chatSidebar && !this.chatSidebar.classList.contains('open')) {
+            this.toggleSidebar();
+        }
+        setTimeout(() => this.chatSearchInput?.focus(), 100);
+    }
+    
+    // ==================== THEME TOGGLE ====================
+    
+    initThemeToggle() {
+        this.isDarkMode = localStorage.getItem('dark_mode') === 'true';
+        this.themeToggleBtn = document.getElementById('themeToggleBtn');
+        
+        // Apply initial theme
+        this.applyTheme();
+        
+        // Bind toggle
+        if (this.themeToggleBtn) {
+            this.themeToggleBtn.addEventListener('click', () => this.toggleTheme());
+        }
+    }
+    
+    toggleTheme() {
+        this.isDarkMode = !this.isDarkMode;
+        localStorage.setItem('dark_mode', this.isDarkMode);
+        this.applyTheme();
+        this.showToast(`${this.isDarkMode ? 'Dark' : 'Light'} mode enabled`, 'info');
+    }
+    
+    applyTheme() {
+        document.body.classList.toggle('dark-mode', this.isDarkMode);
+        
+        // Update icon visibility
+        const sunIcon = this.themeToggleBtn?.querySelector('.sun-icon');
+        const moonIcon = this.themeToggleBtn?.querySelector('.moon-icon');
+        
+        if (sunIcon && moonIcon) {
+            sunIcon.style.display = this.isDarkMode ? 'none' : 'block';
+            moonIcon.style.display = this.isDarkMode ? 'block' : 'none';
+        }
+    }
+    
+    // ==================== TOKEN TRACKING ====================
+    
+    initTokenTracking() {
+        this.totalTokensUsed = parseInt(localStorage.getItem('total_tokens_used') || '0');
+        this.updateStatsDisplay();
+    }
+    
+    updateStatsDisplay() {
+        const totalTokensEl = document.getElementById('totalTokensUsed');
+        const convoCountEl = document.getElementById('conversationCount');
+        const totalConvosEl = document.getElementById('totalConversations');
+        const tokenCountDisplay = document.getElementById('tokenCountDisplay');
+        
+        if (totalTokensEl) {
+            totalTokensEl.textContent = this.formatNumber(this.totalTokensUsed);
+        }
+        if (convoCountEl) {
+            convoCountEl.textContent = this.chatConversations.length;
+        }
+        if (totalConvosEl) {
+            totalConvosEl.textContent = this.chatConversations.length;
+        }
+        if (tokenCountDisplay) {
+            tokenCountDisplay.textContent = this.formatNumber(this.totalTokensUsed);
+        }
+    }
+    
+    formatNumber(num) {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num.toString();
+    }
+    
+    trackTokenUsage(inputTokens, outputTokens) {
+        const total = inputTokens + outputTokens;
+        this.totalTokensUsed += total;
+        localStorage.setItem('total_tokens_used', this.totalTokensUsed);
+        this.updateStatsDisplay();
+    }
+    
+    // ==================== CHAT HEADER ====================
+    
+    initChatHeader() {
+        this.updateChatHeader();
+        
+        // Bind header actions
+        document.getElementById('bookmarkChatBtn')?.addEventListener('click', () => this.bookmarkChat());
+        document.getElementById('forkChatBtn')?.addEventListener('click', () => this.forkConversation());
+        document.getElementById('shareChatBtn')?.addEventListener('click', () => this.shareChat());
+        document.getElementById('exportPdfBtn')?.addEventListener('click', () => this.exportChatAsPdf());
+    }
+    
+    updateChatHeader() {
+        const titleEl = document.getElementById('currentChatTitle');
+        const modelBadge = document.getElementById('currentModelBadge');
+        const modelIndicator = document.getElementById('modelIndicator');
+        
+        const currentChat = this.chatConversations.find(c => c.id === this.currentChatId);
+        
+        if (titleEl && currentChat) {
+            titleEl.textContent = currentChat.title;
+        }
+        
+        // Get current model name
+        const modelName = this.getReadableModelName();
+        if (modelBadge) modelBadge.textContent = modelName;
+        if (modelIndicator) modelIndicator.textContent = modelName;
+    }
+    
+    getReadableModelName() {
+        const model = this.model || '';
+        
+        // Map model IDs to readable names
+        const modelNames = {
+            'anthropic/claude-3.5-sonnet': 'Claude 3.5 Sonnet',
+            'anthropic/claude-3-opus': 'Claude 3 Opus',
+            'anthropic/claude-3-haiku': 'Claude 3 Haiku',
+            'openai/gpt-4-turbo': 'GPT-4 Turbo',
+            'openai/gpt-4o': 'GPT-4o',
+            'openai/gpt-4o-mini': 'GPT-4o Mini',
+            'google/gemini-pro': 'Gemini Pro',
+            'google/gemini-1.5-pro': 'Gemini 1.5 Pro',
+            'deepseek/deepseek-chat': 'DeepSeek',
+            'meta/llama-3': 'Llama 3',
+            'claude-3-5-sonnet-20241022': 'Claude 3.5 Sonnet',
+            'claude-3-opus-20240229': 'Claude 3 Opus',
+            'gpt-4-turbo-preview': 'GPT-4 Turbo',
+            'gpt-4o': 'GPT-4o',
+            'gemini-1.5-pro': 'Gemini 1.5 Pro',
+            'deepseek-chat': 'DeepSeek'
+        };
+        
+        return modelNames[model] || model.split('/').pop()?.replace(/-/g, ' ') || 'AI Model';
+    }
+    
+    bookmarkChat() {
+        const chat = this.chatConversations.find(c => c.id === this.currentChatId);
+        if (chat) {
+            chat.bookmarked = !chat.bookmarked;
+            this.saveChatConversations();
+            this.showToast(chat.bookmarked ? 'Conversation bookmarked' : 'Bookmark removed', 'success');
+        }
+    }
+    
+    shareChat() {
+        const chat = this.chatConversations.find(c => c.id === this.currentChatId);
+        if (!chat || chat.messages.length === 0) {
+            this.showToast('Nothing to share', 'warning');
+            return;
+        }
+        
+        // Create shareable text
+        const shareText = chat.messages.map(m => 
+            `${m.role === 'user' ? '👤 You' : '🤖 AI'}:\n${m.content}`
+        ).join('\n\n---\n\n');
+        
+        if (navigator.share) {
+            navigator.share({
+                title: chat.title,
+                text: shareText
+            }).catch(() => {});
+        } else {
+            // Copy to clipboard
+            navigator.clipboard.writeText(shareText).then(() => {
+                this.showToast('Conversation copied to clipboard', 'success');
+            });
+        }
+    }
+    
+    exportChatAsPdf() {
+        const chat = this.chatConversations.find(c => c.id === this.currentChatId);
+        if (!chat || chat.messages.length === 0) {
+            this.showToast('Nothing to export', 'warning');
+            return;
+        }
+        
+        // Create printable HTML
+        const printContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>${chat.title}</title>
+                <style>
+                    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+                    h1 { border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+                    .message { margin: 20px 0; padding: 15px; border-radius: 8px; }
+                    .user { background: #e8eaff; }
+                    .assistant { background: #f5f5f5; }
+                    .role { font-weight: bold; margin-bottom: 8px; }
+                    .timestamp { color: #888; font-size: 12px; }
+                    pre { background: #1e1e1e; color: #d4d4d4; padding: 10px; border-radius: 4px; overflow-x: auto; }
+                    code { font-family: 'Consolas', 'Monaco', monospace; }
+                </style>
+            </head>
+            <body>
+                <h1>${chat.title}</h1>
+                <p class="timestamp">Exported on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+                ${chat.messages.map(m => `
+                    <div class="message ${m.role}">
+                        <div class="role">${m.role === 'user' ? '👤 You' : '🤖 AI Assistant'}</div>
+                        <div class="content">${this.renderMarkdownForExport(m.content)}</div>
+                    </div>
+                `).join('')}
+            </body>
+            </html>
+        `;
+        
+        // Open in new window and trigger print
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.print();
+    }
+    
+    renderMarkdownForExport(text) {
+        // Simple markdown to HTML conversion for export
+        return text
+            .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+            .replace(/\n/g, '<br>');
+    }
+    
+    // ==================== FOLLOW-UP SUGGESTIONS ====================
+    
+    initFollowupSuggestions() {
+        this.followupSuggestions = document.getElementById('followupSuggestions');
+        this.followupButtons = document.getElementById('followupButtons');
+    }
+    
+    showFollowupSuggestions(suggestions) {
+        if (!this.followupSuggestions || !this.followupButtons) return;
+        
+        this.followupButtons.innerHTML = suggestions.map(s => `
+            <button class="followup-btn" data-prompt="${this.escapeHtml(s)}">${this.escapeHtml(s)}</button>
+        `).join('');
+        
+        // Add click handlers
+        this.followupButtons.querySelectorAll('.followup-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.chatInput.value = btn.dataset.prompt;
+                this.sendChatMessage();
+                this.hideFollowupSuggestions();
+            });
+        });
+        
+        this.followupSuggestions.style.display = 'flex';
+    }
+    
+    hideFollowupSuggestions() {
+        if (this.followupSuggestions) {
+            this.followupSuggestions.style.display = 'none';
+        }
+    }
+    
+    generateFollowupSuggestions(response) {
+        // Extract potential follow-up topics from the response
+        const suggestions = [];
+        
+        // Look for question-like patterns or topics
+        if (response.includes('example')) {
+            suggestions.push('Can you give me more examples?');
+        }
+        if (response.includes('code') || response.includes('```')) {
+            suggestions.push('Explain this code step by step');
+            suggestions.push('How can I improve this code?');
+        }
+        if (response.length > 500) {
+            suggestions.push('Can you summarize the key points?');
+        }
+        
+        // Default suggestions
+        if (suggestions.length < 2) {
+            suggestions.push('Tell me more about this');
+            suggestions.push('What are the alternatives?');
+        }
+        
+        return suggestions.slice(0, 3);
+    }
 }
 
 // Initialize the translator when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     window.translator = new AfrikaansTranslator();
 });
+
