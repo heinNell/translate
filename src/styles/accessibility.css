@@ -1,0 +1,554 @@
+/* ==================== ACCESSIBILITY STYLES ==================== */
+
+/* Screen Reader Only - visually hidden but accessible */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Skip Link */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background: var(--accent-color);
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 0 0 8px 8px;
+  z-index: 10000;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Keyboard Navigation Focus Indicators */
+.keyboard-navigation *:focus {
+  outline: 3px solid var(--accent-color) !important;
+  outline-offset: 2px !important;
+}
+
+.keyboard-navigation button:focus,
+.keyboard-navigation a:focus,
+.keyboard-navigation input:focus,
+.keyboard-navigation select:focus,
+.keyboard-navigation textarea:focus {
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.3) !important;
+}
+
+/* Focus visible for modern browsers */
+:focus-visible {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* ==================== HIGH CONTRAST MODE ==================== */
+
+.high-contrast {
+  --bg-primary: #000000;
+  --bg-secondary: #000000;
+  --bg-tertiary: #1a1a1a;
+  --text-primary: #ffffff;
+  --text-secondary: #ffffff;
+  --text-muted: #cccccc;
+  --border-color: #ffffff;
+  --border-light: #ffffff;
+  --accent-color: #00ff00;
+  --accent-hover: #00cc00;
+  --success-color: #00ff00;
+  --error-color: #ff0000;
+  --warning-color: #ffff00;
+}
+
+.high-contrast body {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+.high-contrast .card,
+.high-contrast .message-bubble,
+.high-contrast .section-content,
+.high-contrast .modal-content {
+  background: #000000 !important;
+  border: 2px solid #ffffff !important;
+}
+
+.high-contrast button,
+.high-contrast .btn {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+.high-contrast button:hover,
+.high-contrast .btn:hover {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+.high-contrast button:focus,
+.high-contrast .btn:focus {
+  outline: 3px solid #00ff00 !important;
+  outline-offset: 2px !important;
+}
+
+.high-contrast a {
+  color: #00ffff !important;
+  text-decoration: underline !important;
+}
+
+.high-contrast a:hover {
+  color: #ffff00 !important;
+}
+
+.high-contrast input,
+.high-contrast textarea,
+.high-contrast select {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+.high-contrast input::placeholder,
+.high-contrast textarea::placeholder {
+  color: #aaaaaa !important;
+}
+
+.high-contrast .badge,
+.high-contrast .tag,
+.high-contrast .formality-badge,
+.high-contrast .tone-badge {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+.high-contrast .success,
+.high-contrast .toast.success {
+  background: #000000 !important;
+  color: #00ff00 !important;
+  border: 2px solid #00ff00 !important;
+}
+
+.high-contrast .error,
+.high-contrast .toast.error {
+  background: #000000 !important;
+  color: #ff0000 !important;
+  border: 2px solid #ff0000 !important;
+}
+
+.high-contrast .warning,
+.high-contrast .toast.warning {
+  background: #000000 !important;
+  color: #ffff00 !important;
+  border: 2px solid #ffff00 !important;
+}
+
+.high-contrast .sidebar,
+.high-contrast .mode-sidebar {
+  background: #000000 !important;
+  border-right: 2px solid #ffffff !important;
+}
+
+.high-contrast .mode-sidebar-btn {
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+}
+
+.high-contrast .mode-sidebar-btn:hover,
+.high-contrast .mode-sidebar-btn.active {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* High contrast toggle button */
+.high-contrast-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.high-contrast-toggle:hover {
+  background: var(--surface-hover);
+}
+
+.high-contrast-toggle.active {
+  background: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+}
+
+/* ==================== COPY FEEDBACK STYLES ==================== */
+
+.copy-feedback-overlay {
+  position: fixed;
+  z-index: 10001;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%) translateY(10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.copy-feedback-overlay.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.copy-feedback-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: var(--success-color);
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.copy-feedback-icon {
+  width: 20px;
+  height: 20px;
+  stroke-width: 3;
+}
+
+/* Button copy success state */
+button.copy-success,
+.btn.copy-success {
+  background: var(--success-color) !important;
+  color: white !important;
+  border-color: var(--success-color) !important;
+}
+
+button.copy-success svg,
+.btn.copy-success svg {
+  stroke: white;
+}
+
+/* ==================== AUTO-SAVE INDICATOR ==================== */
+
+.autosave-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--surface);
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.autosave-indicator.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.autosave-indicator.saving {
+  color: var(--warning-color);
+}
+
+.autosave-indicator.saved {
+  color: var(--success-color);
+}
+
+.autosave-indicator svg {
+  width: 14px;
+  height: 14px;
+}
+
+.autosave-indicator.saving svg {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Draft restoration banner */
+.draft-restore-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--accent-color);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.draft-restore-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.draft-restore-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--accent-color);
+}
+
+.draft-restore-text {
+  font-size: 14px;
+}
+
+.draft-restore-text strong {
+  color: var(--text-primary);
+}
+
+.draft-restore-text .draft-preview {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.draft-restore-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.draft-restore-actions button {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.draft-restore-btn {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+}
+
+.draft-restore-btn:hover {
+  background: var(--accent-hover);
+}
+
+.draft-dismiss-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.draft-dismiss-btn:hover {
+  background: var(--surface-hover);
+}
+
+/* ==================== ARIA ENHANCEMENTS ==================== */
+
+/* Focus trap indicator for modals */
+.focus-trap-active {
+  position: relative;
+}
+
+.focus-trap-active::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 2px solid var(--accent-color);
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Loading states with ARIA */
+[aria-busy="true"] {
+  position: relative;
+  pointer-events: none;
+}
+
+[aria-busy="true"]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(var(--bg-primary-rgb), 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Expanded/collapsed indicators */
+[aria-expanded="false"]::after {
+  content: ' ▸';
+}
+
+[aria-expanded="true"]::after {
+  content: ' ▾';
+}
+
+/* Required field indicator */
+[aria-required="true"]::after {
+  content: ' *';
+  color: var(--error-color);
+}
+
+/* Invalid field styling */
+[aria-invalid="true"] {
+  border-color: var(--error-color) !important;
+  box-shadow: 0 0 0 2px rgba(var(--error-rgb), 0.2) !important;
+}
+
+/* Disabled state */
+[aria-disabled="true"] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ==================== KEYBOARD SHORTCUTS PANEL ==================== */
+
+.keyboard-shortcuts-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 10002;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: none;
+}
+
+.keyboard-shortcuts-panel.visible {
+  display: block;
+  animation: fadeIn 0.2s ease;
+}
+
+.keyboard-shortcuts-panel h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shortcuts-section {
+  margin-bottom: 20px;
+}
+
+.shortcuts-section h3 {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.shortcut-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.shortcut-row:last-child {
+  border-bottom: none;
+}
+
+.shortcut-description {
+  color: var(--text-primary);
+}
+
+.shortcut-keys {
+  display: flex;
+  gap: 4px;
+}
+
+.shortcut-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: monospace;
+  font-weight: 600;
+  box-shadow: 0 2px 0 var(--border-color);
+}
+
+.shortcut-key.wide {
+  min-width: 50px;
+}
+
+.close-shortcuts-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.close-shortcuts-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}

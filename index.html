@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-powered Afrikaans to English translator with chat, email formatting, and content enhancement features">
+    <meta name="theme-color" content="#2563eb">
     <title>AI Assistant - Translate, Chat & More</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,18 +17,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 <body>
+    <!-- Skip Link for Accessibility -->
+    <a href="#inputText" class="skip-link" id="skip-link">Skip to main content</a>
+    
+    <!-- ARIA Live Region for Screen Reader Announcements -->
+    <div id="aria-live-region" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+    
     <!-- Mode Sidebar (Page Selection) -->
-    <aside class="mode-sidebar" id="modeSidebar">
+    <aside class="mode-sidebar" id="modeSidebar" role="navigation" aria-label="Mode navigation">
         <div class="mode-sidebar-header">
-            <div class="mode-sidebar-logo">
+            <div class="mode-sidebar-logo" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
                     <path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
                 </svg>
             </div>
         </div>
-        <nav class="mode-sidebar-nav">
-            <button class="mode-sidebar-btn" id="chatMode" data-mode="chat" title="Chat">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+        <nav class="mode-sidebar-nav" role="tablist" aria-label="Application modes">
+            <button class="mode-sidebar-btn" id="chatMode" data-mode="chat" title="Chat" role="tab" aria-selected="false" aria-controls="chatContainer">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
                     <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
                 </svg>
                 <span class="mode-sidebar-label">Chat</span>
@@ -460,6 +468,8 @@
                         class="text-area" 
                         placeholder="Enter Afrikaans text here...&#10;&#10;Examples:&#10;• Hoe gaan dit met jou?&#10;• Ek is lief vir jou&#10;• Baie dankie vir jou hulp"
                         rows="8"
+                        aria-label="Enter Afrikaans text to translate"
+                        aria-describedby="charCount"
                     ></textarea>
                     <div class="char-count">
                         <span id="charCount">0</span> / 5000 characters
@@ -469,12 +479,12 @@
                 <!-- Translate Button -->
                 <div class="translate-section">
                     <div class="action-model-row">
-                        <button class="translate-btn" id="translateBtn">
+                        <button class="translate-btn" id="translateBtn" aria-label="Translate text">
                             <span class="btn-text">Translate</span>
-                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                 <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z" fill="currentColor"/>
                             </svg>
-                            <div class="btn-loader" id="btnLoader"></div>
+                            <div class="btn-loader" id="btnLoader" aria-hidden="true"></div>
                         </button>
                     </div>
                 </div>
@@ -484,19 +494,19 @@
                     <div class="panel-header">
                         <span class="language-label" id="outputLabel">English</span>
                         <div class="panel-actions">
-                            <button class="action-btn" id="copyBtn" title="Copy translation">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <button class="action-btn" id="copyBtn" title="Copy translation" aria-label="Copy translation to clipboard">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                     <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" fill="currentColor"/>
                                 </svg>
                             </button>
-                            <button class="action-btn" id="speakBtn" title="Listen to translation">
-                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <button class="action-btn" id="speakBtn" title="Listen to translation" aria-label="Read translation aloud">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                     <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="currentColor"/>
                                 </svg>
                             </button>
                         </div>
                     </div>
-                    <div class="output-area" id="outputArea">
+                    <div class="output-area" id="outputArea" role="region" aria-label="Translation result" aria-live="polite">
                         <div class="placeholder-text">
                             Translation will appear here...
                         </div>
@@ -1734,14 +1744,24 @@
                             <p class="fallback-hint">Automatically switch to backup models when rate limits or errors occur</p>
                         </div>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="fallbackToggle" checked>
+                            <input type="checkbox" id="fallbackToggle" checked aria-label="Enable auto-fallback mode">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="fallback-toggle-row">
+                        <div class="fallback-info">
+                            <label class="fallback-label">🔲 High Contrast Mode</label>
+                            <p class="fallback-hint">Enhanced visibility for users with visual impairments</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="highContrastToggle" aria-label="Enable high contrast mode">
                             <span class="toggle-slider"></span>
                         </label>
                     </div>
                     <div class="fallback-status" id="fallbackStatus">
                         <span class="status-label">Model Health:</span>
                         <span class="status-value" id="modelHealthDisplay">All models available</span>
-                        <button class="reset-health-btn" id="resetHealthBtn" title="Reset model health tracking">↻ Reset</button>
+                        <button class="reset-health-btn" id="resetHealthBtn" title="Reset model health tracking" aria-label="Reset model health tracking">↻ Reset</button>
                     </div>
                 </div>
                 

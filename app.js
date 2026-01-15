@@ -464,6 +464,18 @@ Phone: +27 66 273 1270`;
         // Network state
         this.isOnline = navigator.onLine;
         
+        // ==================== AUTO-SAVE & ACCESSIBILITY ====================
+        // Auto-save drafts
+        this.autoSaveInterval = null;
+        this.autoSaveDelay = 5000; // 5 seconds
+        this.lastSavedDraft = '';
+        
+        // High contrast mode
+        this.highContrastMode = localStorage.getItem('high_contrast_mode') === 'true';
+        
+        // Focus trap for modals
+        this.focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+        
         // Load persisted cache
         this.loadCacheFromStorage();
         
@@ -476,10 +488,234 @@ Phone: +27 66 273 1270`;
         this.initChatFeatures();
         this.initAdvancedFeatures();
         this.initNetworkDetection();
+        this.initAutoSave();
+        this.initAccessibility();
         this.updateCharCount();
         
         // API keys are saved in localStorage - no need to auto-show settings
         // User can access settings from the sidebar when needed
+    }
+    
+    // ==================== AUTO-SAVE DRAFTS ====================
+    
+    /**
+     * Initialize auto-save for input drafts
+     */
+    initAutoSave() {
+        // Restore saved draft on load
+        const savedDraft = localStorage.getItem('input_draft');
+        if (savedDraft && this.inputText && !this.inputText.value) {
+            this.inputText.value = savedDraft;
+            this.updateCharCount();
+            this.showToast('Draft restored', 'info');
+        }
+        
+        // Start auto-save interval
+        this.autoSaveInterval = setInterval(() => this.saveDraft(), this.autoSaveDelay);
+        
+        // Save on page unload
+        window.addEventListener('beforeunload', () => this.saveDraft());
+    }
+    
+    /**
+     * Save current input as draft
+     */
+    saveDraft() {
+        if (!this.inputText) return;
+        
+        const currentText = this.inputText.value.trim();
+        
+        // Only save if text has changed and is not empty
+        if (currentText && currentText !== this.lastSavedDraft) {
+            localStorage.setItem('input_draft', currentText);
+            this.lastSavedDraft = currentText;
+        }
+    }
+    
+    /**
+     * Clear saved draft
+     */
+    clearDraft() {
+        localStorage.removeItem('input_draft');
+        this.lastSavedDraft = '';
+    }
+    
+    // ==================== ACCESSIBILITY FEATURES ====================
+    
+    /**
+     * Initialize accessibility features
+     */
+    initAccessibility() {
+        // Apply high contrast if enabled
+        if (this.highContrastMode) {
+            document.body.classList.add('high-contrast');
+        }
+        
+        // Add ARIA labels
+        this.addAriaLabels();
+        
+        // Setup focus management
+        this.setupFocusManagement();
+        
+        // Add skip link functionality
+        this.setupSkipLinks();
+        
+        // Announce dynamic content changes
+        this.createAriaLiveRegion();
+    }
+    
+    /**
+     * Add ARIA labels to interactive elements
+     */
+    addAriaLabels() {
+        // Input area
+        if (this.inputText) {
+            this.inputText.setAttribute('aria-label', 'Enter Afrikaans text to translate');
+            this.inputText.setAttribute('aria-describedby', 'charCount');
+        }
+        
+        // Output area
+        if (this.outputArea) {
+            this.outputArea.setAttribute('aria-label', 'Translation result');
+            this.outputArea.setAttribute('aria-live', 'polite');
+            this.outputArea.setAttribute('role', 'region');
+        }
+        
+        // Action buttons
+        if (this.translateBtn) {
+            this.translateBtn.setAttribute('aria-label', 'Translate text');
+        }
+        if (this.clearBtn) {
+            this.clearBtn.setAttribute('aria-label', 'Clear input text');
+        }
+        if (this.copyBtn) {
+            this.copyBtn.setAttribute('aria-label', 'Copy translation to clipboard');
+        }
+        if (this.speakBtn) {
+            this.speakBtn.setAttribute('aria-label', 'Read translation aloud');
+        }
+        if (this.micBtn) {
+            this.micBtn.setAttribute('aria-label', 'Voice input - speak to translate');
+        }
+        
+        // Mode buttons
+        document.querySelectorAll('.mode-sidebar-btn').forEach(btn => {
+            const mode = btn.dataset.mode;
+            btn.setAttribute('aria-label', `Switch to ${mode} mode`);
+            btn.setAttribute('role', 'tab');
+            btn.setAttribute('aria-selected', btn.classList.contains('active') ? 'true' : 'false');
+        });
+        
+        // Modal
+        if (this.apiKeyModal) {
+            this.apiKeyModal.setAttribute('role', 'dialog');
+            this.apiKeyModal.setAttribute('aria-modal', 'true');
+            this.apiKeyModal.setAttribute('aria-labelledby', 'settings-title');
+        }
+    }
+    
+    /**
+     * Setup focus management for better keyboard navigation
+     */
+    setupFocusManagement() {
+        // Track focus within modals
+        document.addEventListener('keydown', (e) => {
+            // Escape key closes modals
+            if (e.key === 'Escape') {
+                if (this.apiKeyModal?.classList.contains('active')) {
+                    this.hideModal();
+                }
+            }
+            
+            // Tab trap for modals
+            if (e.key === 'Tab' && this.apiKeyModal?.classList.contains('active')) {
+                this.trapFocus(e, this.apiKeyModal);
+            }
+        });
+        
+        // Focus visible outline enhancement
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                document.body.classList.add('keyboard-navigation');
+            }
+        });
+        
+        document.addEventListener('mousedown', () => {
+            document.body.classList.remove('keyboard-navigation');
+        });
+    }
+    
+    /**
+     * Trap focus within an element (for modals)
+     * @param {KeyboardEvent} e - Keyboard event
+     * @param {HTMLElement} container - Container to trap focus in
+     */
+    trapFocus(e, container) {
+        const focusable = container.querySelectorAll(this.focusableElements);
+        const firstFocusable = focusable[0];
+        const lastFocusable = focusable[focusable.length - 1];
+        
+        if (e.shiftKey && document.activeElement === firstFocusable) {
+            e.preventDefault();
+            lastFocusable.focus();
+        } else if (!e.shiftKey && document.activeElement === lastFocusable) {
+            e.preventDefault();
+            firstFocusable.focus();
+        }
+    }
+    
+    /**
+     * Setup skip links for keyboard users
+     */
+    setupSkipLinks() {
+        // Create skip link if not exists
+        if (!document.getElementById('skip-link')) {
+            const skipLink = document.createElement('a');
+            skipLink.id = 'skip-link';
+            skipLink.href = '#inputText';
+            skipLink.className = 'skip-link';
+            skipLink.textContent = 'Skip to main content';
+            document.body.insertBefore(skipLink, document.body.firstChild);
+        }
+    }
+    
+    /**
+     * Create ARIA live region for announcements
+     */
+    createAriaLiveRegion() {
+        if (!document.getElementById('aria-live-region')) {
+            const liveRegion = document.createElement('div');
+            liveRegion.id = 'aria-live-region';
+            liveRegion.setAttribute('aria-live', 'polite');
+            liveRegion.setAttribute('aria-atomic', 'true');
+            liveRegion.className = 'sr-only';
+            document.body.appendChild(liveRegion);
+        }
+    }
+    
+    /**
+     * Announce message to screen readers
+     * @param {string} message - Message to announce
+     */
+    announceToScreenReader(message) {
+        const liveRegion = document.getElementById('aria-live-region');
+        if (liveRegion) {
+            liveRegion.textContent = '';
+            setTimeout(() => {
+                liveRegion.textContent = message;
+            }, 100);
+        }
+    }
+    
+    /**
+     * Toggle high contrast mode
+     */
+    toggleHighContrast() {
+        this.highContrastMode = !this.highContrastMode;
+        document.body.classList.toggle('high-contrast', this.highContrastMode);
+        localStorage.setItem('high_contrast_mode', this.highContrastMode.toString());
+        this.showToast(this.highContrastMode ? 'High contrast mode enabled' : 'High contrast mode disabled', 'success');
+        this.announceToScreenReader(this.highContrastMode ? 'High contrast mode enabled' : 'High contrast mode disabled');
     }
     
     // ==================== PERFORMANCE OPTIMIZATION METHODS ====================
@@ -920,11 +1156,20 @@ Phone: +27 66 273 1270`;
         // Fallback toggle and reset health button
         const fallbackToggle = document.getElementById('fallbackToggle');
         const resetHealthBtn = document.getElementById('resetHealthBtn');
+        const highContrastToggle = document.getElementById('highContrastToggle');
         
         if (fallbackToggle) {
             fallbackToggle.checked = this.fallbackEnabled;
             fallbackToggle.addEventListener('change', () => {
                 this.toggleFallbackMode(fallbackToggle.checked);
+            });
+        }
+        
+        if (highContrastToggle) {
+            highContrastToggle.checked = this.highContrastMode;
+            highContrastToggle.addEventListener('change', () => {
+                this.toggleHighContrast();
+                highContrastToggle.checked = this.highContrastMode;
             });
         }
         
@@ -1156,6 +1401,8 @@ Phone: +27 66 273 1270`;
         this.inputText.focus();
         // Stop any ongoing speech
         this.stopSpeech();
+        // Clear saved draft
+        this.clearDraft();
     }
     
     async copyTranslation() {
@@ -1166,10 +1413,44 @@ Phone: +27 66 273 1270`;
         
         try {
             await navigator.clipboard.writeText(this.currentTranslation.translation);
+            
+            // Visual feedback on button
+            this.showCopyFeedback(this.copyBtn);
+            
             this.showToast('Translation copied to clipboard!', 'success');
+            this.announceToScreenReader('Translation copied to clipboard');
         } catch (err) {
             this.showToast('Failed to copy. Please select and copy manually.', 'error');
         }
+    }
+    
+    /**
+     * Show visual copy feedback on a button
+     * @param {HTMLElement} button - Button element
+     */
+    showCopyFeedback(button) {
+        if (!button) return;
+        
+        // Store original content
+        const originalHTML = button.innerHTML;
+        const originalTitle = button.title;
+        
+        // Add copied state
+        button.classList.add('copied');
+        button.innerHTML = `
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Copied!</span>
+        `;
+        button.title = 'Copied!';
+        
+        // Reset after animation
+        setTimeout(() => {
+            button.classList.remove('copied');
+            button.innerHTML = originalHTML;
+            button.title = originalTitle;
+        }, 2000);
     }
     
     speakTranslation() {
