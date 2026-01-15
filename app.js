@@ -449,6 +449,24 @@ Phone: +27 66 273 1270`;
             translator: 'You are an expert translator with deep knowledge of languages and cultures. Translate accurately while preserving meaning, tone, and cultural context. Explain nuances when relevant.'
         };
         
+        // ==================== PERFORMANCE OPTIMIZATION ====================
+        // Translation cache (LRU with TTL)
+        this.translationCache = new Map();
+        this.cacheMaxSize = 500;
+        this.cacheTTL = 24 * 60 * 60 * 1000; // 24 hours
+        this.cacheHits = 0;
+        this.cacheMisses = 0;
+        
+        // Debounce timers
+        this.translateDebounceTimer = null;
+        this.translateDebounceDelay = 300;
+        
+        // Network state
+        this.isOnline = navigator.onLine;
+        
+        // Load persisted cache
+        this.loadCacheFromStorage();
+        
         this.init();
     }
     
@@ -457,10 +475,201 @@ Phone: +27 66 273 1270`;
         this.initSpeechRecognition();
         this.initChatFeatures();
         this.initAdvancedFeatures();
+        this.initNetworkDetection();
         this.updateCharCount();
         
         // API keys are saved in localStorage - no need to auto-show settings
         // User can access settings from the sidebar when needed
+    }
+    
+    // ==================== PERFORMANCE OPTIMIZATION METHODS ====================
+    
+    /**
+     * Initialize network connectivity detection
+     */
+    initNetworkDetection() {
+        window.addEventListener('online', () => {
+            this.isOnline = true;
+            this.hideOfflineNotification();
+            this.showToast('You are back online', 'success');
+        });
+        
+        window.addEventListener('offline', () => {
+            this.isOnline = false;
+            this.showOfflineNotification();
+        });
+    }
+    
+    /**
+     * Show offline notification banner
+     */
+    showOfflineNotification() {
+        if (document.getElementById('offline-notification')) return;
+        
+        const notification = document.createElement('div');
+        notification.id = 'offline-notification';
+        notification.className = 'offline-notification';
+        notification.innerHTML = `
+            <div class="offline-content">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                    <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+                    <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+                    <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
+                    <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+                    <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+                    <line x1="12" y1="20" x2="12.01" y2="20"></line>
+                </svg>
+                <span>You're offline. Cached translations may still work.</span>
+            </div>
+        `;
+        document.body.appendChild(notification);
+    }
+    
+    /**
+     * Hide offline notification
+     */
+    hideOfflineNotification() {
+        const notification = document.getElementById('offline-notification');
+        if (notification) {
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 300);
+        }
+    }
+    
+    /**
+     * Generate cache key for translation
+     * @param {string} text - Input text
+     * @param {string} mode - Current mode
+     * @returns {string} Cache key
+     */
+    generateCacheKey(text, mode) {
+        const normalizedText = text.trim().toLowerCase();
+        const provider = this.currentProvider;
+        const model = this.model;
+        // Simple hash function
+        let hash = 0;
+        for (let i = 0; i < normalizedText.length; i++) {
+            const char = normalizedText.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        return `${mode}:${provider}:${model}:${hash.toString(36)}`;
+    }
+    
+    /**
+     * Get cached translation if available and not expired
+     * @param {string} key - Cache key
+     * @returns {object|null} Cached result or null
+     */
+    getCachedTranslation(key) {
+        const entry = this.translationCache.get(key);
+        if (!entry) {
+            this.cacheMisses++;
+            return null;
+        }
+        
+        // Check expiration
+        if (Date.now() - entry.timestamp > this.cacheTTL) {
+            this.translationCache.delete(key);
+            this.cacheMisses++;
+            return null;
+        }
+        
+        this.cacheHits++;
+        entry.hits = (entry.hits || 0) + 1;
+        return entry.value;
+    }
+    
+    /**
+     * Store translation in cache
+     * @param {string} key - Cache key
+     * @param {object} value - Translation result
+     */
+    setCachedTranslation(key, value) {
+        // Evict oldest entries if at capacity (LRU)
+        while (this.translationCache.size >= this.cacheMaxSize) {
+            const oldestKey = this.translationCache.keys().next().value;
+            this.translationCache.delete(oldestKey);
+        }
+        
+        this.translationCache.set(key, {
+            value,
+            timestamp: Date.now(),
+            hits: 0
+        });
+        
+        // Debounce save to storage
+        this.scheduleCacheSave();
+    }
+    
+    /**
+     * Schedule debounced save to localStorage
+     */
+    scheduleCacheSave() {
+        if (this.cacheSaveTimeout) {
+            clearTimeout(this.cacheSaveTimeout);
+        }
+        this.cacheSaveTimeout = setTimeout(() => this.saveCacheToStorage(), 2000);
+    }
+    
+    /**
+     * Save cache to localStorage (only recent entries)
+     */
+    saveCacheToStorage() {
+        try {
+            const entries = Array.from(this.translationCache.entries()).slice(-100);
+            localStorage.setItem('translation_cache', JSON.stringify({
+                version: 1,
+                entries,
+                stats: { hits: this.cacheHits, misses: this.cacheMisses }
+            }));
+        } catch (error) {
+            console.warn('Failed to save cache:', error);
+        }
+    }
+    
+    /**
+     * Load cache from localStorage
+     */
+    loadCacheFromStorage() {
+        try {
+            const stored = localStorage.getItem('translation_cache');
+            if (!stored) return;
+            
+            const data = JSON.parse(stored);
+            if (data.version !== 1) return;
+            
+            const now = Date.now();
+            for (const [key, entry] of data.entries) {
+                if (now - entry.timestamp <= this.cacheTTL) {
+                    this.translationCache.set(key, entry);
+                }
+            }
+            
+            if (data.stats) {
+                this.cacheHits = data.stats.hits || 0;
+                this.cacheMisses = data.stats.misses || 0;
+            }
+            
+            console.log(`Loaded ${this.translationCache.size} cached translations`);
+        } catch (error) {
+            console.warn('Failed to load cache:', error);
+        }
+    }
+    
+    /**
+     * Get cache statistics
+     * @returns {object} Cache stats
+     */
+    getCacheStats() {
+        const total = this.cacheHits + this.cacheMisses;
+        return {
+            size: this.translationCache.size,
+            hits: this.cacheHits,
+            misses: this.cacheMisses,
+            hitRate: total > 0 ? ((this.cacheHits / total) * 100).toFixed(1) + '%' : '0%'
+        };
     }
     
     // ==================== CHAT INITIALIZATION ====================
@@ -2196,6 +2405,22 @@ Phone: +27 66 273 1270`;
             return;
         }
         
+        // Check cache first for instant results
+        const cacheKey = this.generateCacheKey(text, 'translate');
+        const cachedResult = this.getCachedTranslation(cacheKey);
+        
+        if (cachedResult) {
+            console.log('Cache hit for translation');
+            this.displayTranslation(cachedResult, true); // true = from cache
+            return;
+        }
+        
+        // Check network connectivity
+        if (!navigator.onLine) {
+            this.showToast('You are offline. Please check your internet connection.', 'error');
+            return;
+        }
+        
         this.setLoading(true);
         this.hideDetails();
         
@@ -2205,7 +2430,11 @@ Phone: +27 66 273 1270`;
                 () => this.callTranslationAPI(text),
                 { showNotifications: true }
             );
-            this.displayTranslation(result);
+            
+            // Cache successful translation
+            this.setCachedTranslation(cacheKey, result);
+            
+            this.displayTranslation(result, false);
         } catch (error) {
             console.error('Translation error:', error);
             this.showToast(error.message || 'Translation failed. Please try again.', 'error');
@@ -2493,11 +2722,26 @@ Always respond with valid JSON only, no additional text.`;
         }
     }
     
-    displayTranslation(result) {
+    displayTranslation(result, fromCache = false) {
         this.currentTranslation = result;
         
+        // Build cache indicator if from cache
+        const cacheIndicator = fromCache ? `
+            <span class="cache-indicator" title="Loaded from cache - instant result!">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+                Cached
+            </span>
+        ` : '';
+        
         // Display main translation
-        this.outputArea.innerHTML = `<div class="translation-text">${this.escapeHtml(result.translation)}</div>`;
+        this.outputArea.innerHTML = `
+            <div class="translation-text">
+                ${this.escapeHtml(result.translation)}
+                ${cacheIndicator}
+            </div>
+        `;
         
         // Show details section
         this.detailsSection.classList.add('visible');
@@ -4973,7 +5217,16 @@ ${this.emailSignatureHTML}`;
         this.translateBtn.classList.toggle('loading', isLoading);
         
         if (isLoading) {
-            this.outputArea.innerHTML = '<div class="placeholder-text">Translating...</div>';
+            // Show skeleton loading animation
+            this.outputArea.innerHTML = `
+                <div class="output-loading">
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line"></div>
+                </div>
+            `;
         }
     }
     
