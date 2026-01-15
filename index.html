@@ -63,124 +63,6 @@
             </button>
         </nav>
         
-        <!-- Quick Model Switcher in Sidebar -->
-        <div class="mode-sidebar-model">
-            <button class="sidebar-model-btn" id="quickModelBtn" title="Change AI Model">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                </svg>
-                <span class="sidebar-model-name" id="quickModelName">Claude 3.5</span>
-            </button>
-            <div class="quick-model-dropdown sidebar-dropdown" id="quickModelDropdown">
-                <!-- Provider Tabs -->
-                <div class="quick-provider-tabs" id="quickProviderTabs">
-                    <button class="quick-provider-tab active" data-provider="openrouter" title="OpenRouter">OpenRouter</button>
-                    <button class="quick-provider-tab" data-provider="anthropic" title="Anthropic">Anthropic</button>
-                    <button class="quick-provider-tab" data-provider="openai" title="OpenAI">OpenAI</button>
-                    <button class="quick-provider-tab" data-provider="google" title="Google">Google</button>
-                    <button class="quick-provider-tab" data-provider="deepseek" title="DeepSeek">DeepSeek</button>
-                    <button class="quick-provider-tab" data-provider="grok" title="Grok">Grok</button>
-                </div>
-                <div class="quick-model-search">
-                    <input type="text" id="quickModelSearch" placeholder="Search models...">
-                </div>
-                <div class="quick-model-list" id="quickModelList">
-                    <!-- OpenRouter Models -->
-                    <div class="quick-provider-models active" data-provider="openrouter">
-                        <div class="quick-model-group">
-                            <div class="quick-model-group-title">Top Tier</div>
-                            <div class="quick-model-option" data-model="anthropic/claude-sonnet-4" data-provider="openrouter">Claude Sonnet 4</div>
-                            <div class="quick-model-option" data-model="anthropic/claude-3.5-sonnet" data-provider="openrouter">Claude 3.5 Sonnet</div>
-                            <div class="quick-model-option" data-model="anthropic/claude-3-opus" data-provider="openrouter">Claude 3 Opus</div>
-                            <div class="quick-model-option" data-model="openai/gpt-4o" data-provider="openrouter">GPT-4o</div>
-                            <div class="quick-model-option" data-model="google/gemini-pro-1.5" data-provider="openrouter">Gemini Pro 1.5</div>
-                        </div>
-                        <div class="quick-model-group">
-                            <div class="quick-model-group-title">Fast & Efficient</div>
-                            <div class="quick-model-option" data-model="anthropic/claude-3.5-haiku" data-provider="openrouter">Claude 3.5 Haiku</div>
-                            <div class="quick-model-option" data-model="openai/gpt-4o-mini" data-provider="openrouter">GPT-4o Mini</div>
-                            <div class="quick-model-option" data-model="google/gemini-flash-1.5" data-provider="openrouter">Gemini Flash 1.5</div>
-                            <div class="quick-model-option" data-model="meta-llama/llama-3.1-70b-instruct" data-provider="openrouter">Llama 3.1 70B</div>
-                        </div>
-                        <div class="quick-model-group">
-                            <div class="quick-model-group-title">Reasoning</div>
-                            <div class="quick-model-option" data-model="openai/o1-preview" data-provider="openrouter">OpenAI O1 Preview</div>
-                            <div class="quick-model-option" data-model="openai/o1-mini" data-provider="openrouter">OpenAI O1 Mini</div>
-                            <div class="quick-model-option" data-model="deepseek/deepseek-r1" data-provider="openrouter">DeepSeek R1</div>
-                            <div class="quick-model-option" data-model="deepseek/deepseek-chat" data-provider="openrouter">DeepSeek Chat</div>
-                        </div>
-                        <div class="quick-model-group">
-                            <div class="quick-model-group-title">Budget Friendly</div>
-                            <div class="quick-model-option" data-model="mistralai/mistral-large" data-provider="openrouter">Mistral Large</div>
-                            <div class="quick-model-option" data-model="qwen/qwen-2.5-72b-instruct" data-provider="openrouter">Qwen 2.5 72B</div>
-                            <div class="quick-model-option" data-model="meta-llama/llama-3.1-8b-instruct" data-provider="openrouter">Llama 3.1 8B (Free)</div>
-                        </div>
-                    </div>
-                    <!-- Anthropic Direct Models -->
-                    <div class="quick-provider-models" data-provider="anthropic">
-                        <div class="quick-model-group">
-                            <div class="quick-model-group-title">Claude Models</div>
-                            <div class="quick-model-option" data-model="claude-sonnet-4-20250514" data-provider="anthropic">Claude Sonnet 4</div>
-                            <div class="quick-model-option" data-model="claude-3-5-sonnet-20241022" data-provider="anthropic">Claude 3.5 Sonnet</div>
-                            <div class="quick-model-option" data-model="claude-3-5-haiku-20241022" data-provider="anthropic">Claude 3.5 Haiku</div>
-                            <div class="quick-model-option" data-model="claude-3-opus-20240229" data-provider="anthropic">Claude 3 Opus</div>
-                            <div class="quick-model-option" data-model="claude-3-haiku-20240307" data-provider="anthropic">Claude 3 Haiku</div>
-                        </div>
-                    </div>
-                    <!-- OpenAI Direct Models -->
-                    <div class="quick-provider-models" data-provider="openai">
-                        <div class="quick-model-group">
-                            <div class="quick-model-group-title">GPT-5 Series</div>
-                            <div class="quick-model-option" data-model="gpt-5" data-provider="openai">GPT-5</div>
-                            <div class="quick-model-option" data-model="gpt-5-mini" data-provider="openai">GPT-5 Mini</div>
-                            <div class="quick-model-option" data-model="gpt-5-nano" data-provider="openai">GPT-5 Nano</div>
-                        </div>
-                        <div class="quick-model-group">
-                            <div class="quick-model-group-title">GPT-4 Series</div>
-                            <div class="quick-model-option" data-model="gpt-4.1" data-provider="openai">GPT-4.1</div>
-                            <div class="quick-model-option" data-model="gpt-4.1-mini" data-provider="openai">GPT-4.1 Mini</div>
-                            <div class="quick-model-option" data-model="gpt-4.1-nano" data-provider="openai">GPT-4.1 Nano</div>
-                            <div class="quick-model-option" data-model="gpt-4o-2024-11-20" data-provider="openai">GPT-4o</div>
-                            <div class="quick-model-option" data-model="gpt-4-turbo" data-provider="openai">GPT-4 Turbo</div>
-                        </div>
-                        <div class="quick-model-group">
-                            <div class="quick-model-group-title">Reasoning</div>
-                            <div class="quick-model-option" data-model="o3-mini-2025-01-31" data-provider="openai">O3 Mini</div>
-                        </div>
-                        <div class="quick-model-group">
-                            <div class="quick-model-group-title">Legacy</div>
-                            <div class="quick-model-option" data-model="gpt-3.5-turbo" data-provider="openai">GPT-3.5 Turbo</div>
-                        </div>
-                    </div>
-                    <!-- Google Models -->
-                    <div class="quick-provider-models" data-provider="google">
-                        <div class="quick-model-group">
-                            <div class="quick-model-group-title">Gemini Models</div>
-                            <div class="quick-model-option" data-model="gemini-1.5-pro" data-provider="google">Gemini 1.5 Pro</div>
-                            <div class="quick-model-option" data-model="gemini-1.5-flash" data-provider="google">Gemini 1.5 Flash</div>
-                            <div class="quick-model-option" data-model="gemini-pro" data-provider="google">Gemini Pro</div>
-                        </div>
-                    </div>
-                    <!-- DeepSeek Models -->
-                    <div class="quick-provider-models" data-provider="deepseek">
-                        <div class="quick-model-group">
-                            <div class="quick-model-group-title">DeepSeek Models</div>
-                            <div class="quick-model-option" data-model="deepseek-chat" data-provider="deepseek">DeepSeek Chat</div>
-                            <div class="quick-model-option" data-model="deepseek-coder" data-provider="deepseek">DeepSeek Coder</div>
-                            <div class="quick-model-option" data-model="deepseek-reasoner" data-provider="deepseek">DeepSeek Reasoner</div>
-                        </div>
-                    </div>
-                    <!-- Grok Models -->
-                    <div class="quick-provider-models" data-provider="grok">
-                        <div class="quick-model-group">
-                            <div class="quick-model-group-title">Grok Models</div>
-                            <div class="quick-model-option" data-model="grok-beta" data-provider="grok">Grok Beta</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
         <div class="mode-sidebar-footer">
             <button class="mode-sidebar-settings" id="settingsBtnSidebar" title="Settings">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
@@ -1473,6 +1355,21 @@
                             <span class="provider-name">Morph AI</span>
                             <span class="provider-badge new">New</span>
                         </button>
+                        <button class="provider-tab" data-provider="groq">
+                            <span class="provider-icon">⚡</span>
+                            <span class="provider-name">Groq</span>
+                            <span class="provider-badge free">Free</span>
+                        </button>
+                        <button class="provider-tab" data-provider="together">
+                            <span class="provider-icon">🤝</span>
+                            <span class="provider-name">Together AI</span>
+                            <span class="provider-badge free">Free</span>
+                        </button>
+                        <button class="provider-tab" data-provider="ollama">
+                            <span class="provider-icon">🦙</span>
+                            <span class="provider-name">Ollama</span>
+                            <span class="provider-badge free">Local</span>
+                        </button>
                     </div>
                 </div>
                 
@@ -1711,6 +1608,118 @@
                     </div>
                 </div>
                 
+                <!-- Groq Section (FREE) -->
+                <div class="provider-content" id="groqSection">
+                    <div class="free-tier-banner">
+                        <span class="free-icon">🎉</span>
+                        <span class="free-text">FREE - Fast inference with generous limits!</span>
+                    </div>
+                    <div class="model-select-group">
+                        <label for="groqModelSelect">Select Groq Model</label>
+                        <select id="groqModelSelect" class="model-select">
+                            <optgroup label="🦙 Llama Models (Best)">
+                                <option value="llama-3.3-70b-versatile" selected>Llama 3.3 70B Versatile (Best)</option>
+                                <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant (Fastest)</option>
+                            </optgroup>
+                            <optgroup label="🌙 Other Models">
+                                <option value="qwen/qwen3-32b">Qwen 3 32B</option>
+                                <option value="moonshotai/kimi-k2-instruct">Kimi K2 Instruct</option>
+                                <option value="deepseek-r1-distill-llama-70b">DeepSeek R1 Distill 70B</option>
+                            </optgroup>
+                        </select>
+                        <p class="model-hint">⚡ Groq - Lightning-fast free inference (up to ~6000 tokens/min)</p>
+                    </div>
+                    <div class="api-key-group">
+                        <label for="groqKeyInput">Groq API Key</label>
+                        <div class="api-key-input-wrapper">
+                            <input type="password" id="groqKeyInput" placeholder="gsk_..." class="api-key-input">
+                            <button type="button" class="toggle-visibility-btn" data-target="groqKeyInput">👁️</button>
+                        </div>
+                        <p class="api-hint">Get your FREE API key at <a href="https://console.groq.com/keys" target="_blank">console.groq.com</a></p>
+                    </div>
+                </div>
+                
+                <!-- Together AI Section (FREE tier) -->
+                <div class="provider-content" id="togetherSection">
+                    <div class="free-tier-banner">
+                        <span class="free-icon">🎁</span>
+                        <span class="free-text">FREE $25 credits on signup!</span>
+                    </div>
+                    <div class="model-select-group">
+                        <label for="togetherModelSelect">Select Together AI Model</label>
+                        <select id="togetherModelSelect" class="model-select">
+                            <optgroup label="🦙 Llama Models">
+                                <option value="meta-llama/Llama-3.3-70B-Instruct-Turbo" selected>Llama 3.3 70B Turbo (Best)</option>
+                                <option value="meta-llama/Llama-3.2-3B-Instruct-Turbo">Llama 3.2 3B Turbo (Fast)</option>
+                                <option value="meta-llama/Llama-3.1-405B-Instruct-Turbo">Llama 3.1 405B (Most Capable)</option>
+                                <option value="meta-llama/Llama-3.1-70B-Instruct-Turbo">Llama 3.1 70B Turbo</option>
+                            </optgroup>
+                            <optgroup label="🔀 Mixtral Models">
+                                <option value="mistralai/Mixtral-8x7B-Instruct-v0.1">Mixtral 8x7B Instruct</option>
+                                <option value="mistralai/Mixtral-8x22B-Instruct-v0.1">Mixtral 8x22B Instruct</option>
+                            </optgroup>
+                            <optgroup label="🌟 Qwen Models">
+                                <option value="Qwen/Qwen2.5-72B-Instruct-Turbo">Qwen 2.5 72B Turbo</option>
+                                <option value="Qwen/Qwen2.5-7B-Instruct-Turbo">Qwen 2.5 7B Turbo (Fast)</option>
+                            </optgroup>
+                            <optgroup label="🔍 DeepSeek Models">
+                                <option value="deepseek-ai/DeepSeek-R1-Distill-Llama-70B">DeepSeek R1 Distill 70B</option>
+                                <option value="deepseek-ai/DeepSeek-V3">DeepSeek V3</option>
+                            </optgroup>
+                        </select>
+                        <p class="model-hint">🤝 Together AI - Access to 100+ models with free credits</p>
+                    </div>
+                    <div class="api-key-group">
+                        <label for="togetherKeyInput">Together AI API Key</label>
+                        <div class="api-key-input-wrapper">
+                            <input type="password" id="togetherKeyInput" placeholder="..." class="api-key-input">
+                            <button type="button" class="toggle-visibility-btn" data-target="togetherKeyInput">👁️</button>
+                        </div>
+                        <p class="api-hint">Get FREE $25 credits at <a href="https://api.together.xyz/settings/api-keys" target="_blank">api.together.xyz</a></p>
+                    </div>
+                </div>
+                
+                <!-- Ollama Section (LOCAL - FREE) -->
+                <div class="provider-content" id="ollamaSection">
+                    <div class="free-tier-banner">
+                        <span class="free-icon">🦙</span>
+                        <span class="free-text">100% FREE - Runs locally on your computer!</span>
+                    </div>
+                    <div class="model-select-group">
+                        <label for="ollamaModelSelect">Select Ollama Model</label>
+                        <select id="ollamaModelSelect" class="model-select">
+                            <optgroup label="🦙 Llama Models">
+                                <option value="llama3.2" selected>Llama 3.2 (3B - Recommended)</option>
+                                <option value="llama3.2:1b">Llama 3.2 (1B - Fastest)</option>
+                                <option value="llama3.1">Llama 3.1 (8B)</option>
+                                <option value="llama3.1:70b">Llama 3.1 (70B - Best Quality)</option>
+                            </optgroup>
+                            <optgroup label="🌀 Mistral Models">
+                                <option value="mistral">Mistral (7B)</option>
+                                <option value="mistral-nemo">Mistral Nemo (12B)</option>
+                            </optgroup>
+                            <optgroup label="🌟 Qwen Models">
+                                <option value="qwen2.5">Qwen 2.5 (7B)</option>
+                                <option value="qwen2.5:14b">Qwen 2.5 (14B)</option>
+                                <option value="qwen2.5:32b">Qwen 2.5 (32B)</option>
+                            </optgroup>
+                            <optgroup label="💎 Other Models">
+                                <option value="gemma2">Gemma 2 (9B)</option>
+                                <option value="phi3">Phi-3 (3.8B - Microsoft)</option>
+                                <option value="deepseek-r1:7b">DeepSeek R1 (7B)</option>
+                            </optgroup>
+                        </select>
+                        <p class="model-hint">🦙 Ollama - Run AI models locally (requires <a href="https://ollama.com" target="_blank">Ollama</a> installed)</p>
+                    </div>
+                    <div class="api-key-group">
+                        <label for="ollamaUrlInput">Ollama Server URL</label>
+                        <div class="api-key-input-wrapper">
+                            <input type="text" id="ollamaUrlInput" placeholder="http://localhost:11434" value="http://localhost:11434" class="api-key-input">
+                        </div>
+                        <p class="api-hint">Default: http://localhost:11434 - Install Ollama from <a href="https://ollama.com/download" target="_blank">ollama.com</a></p>
+                    </div>
+                </div>
+                
                 <!-- Current Selection Display -->
                 <div class="current-selection" id="currentSelection">
                     <span class="selection-label">Selected:</span>
@@ -1830,6 +1839,6 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>

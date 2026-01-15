@@ -1,0 +1,34 @@
+{
+  "name": "afrikaans-translator",
+  "version": "2.0.0",
+  "description": "AI-powered Afrikaans to English translator with multiple providers",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "serve": "python3 -m http.server 8080",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:migrate": "supabase db push",
+    "supabase:deploy": "supabase functions deploy"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "keywords": [
+    "translator",
+    "afrikaans",
+    "english",
+    "ai",
+    "openai",
+    "anthropic",
+    "groq",
+    "ollama"
+  ],
+  "author": "Heinrich Nel",
+  "license": "MIT"
+}

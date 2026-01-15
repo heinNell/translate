@@ -1,40 +1,75 @@
-# Afrikaans to English Translator
+# Afrikaans AI Translator
 
-A web-based AI-powered translation app that converts Afrikaans text to English with cultural sensitivity and contextual awareness.
+AI-powered Afrikaans to English translator with multiple AI providers, chat, email formatting, and content enhancement features.
 
 ![Translator Preview](https://img.shields.io/badge/Status-Ready-brightgreen)
 ![License](https://img.shields.io/badge/License-MIT-blue)
+![Version](https://img.shields.io/badge/Version-2.0.0-purple)
 
 ## ✨ Features
 
-### Core Translation
+- 🌍 **Translation**: Afrikaans to English with cultural context and grammar analysis
+- 💬 **Chat Mode**: Full conversational AI with streaming responses
+- ✉️ **Email Mode**: Professional email formatting and translation
+- ✨ **Enhance Mode**: Text improvement and suggestions
+- 🤖 **Agent Mode**: Knowledge assistant with comprehensive answers
+- 📊 **Strategy Mode**: Business strategy analysis and refinement
 
-- **AI-Powered Translation** - Uses OpenRouter API with Claude 3.5 Sonnet for accurate, context-aware translations
-- **Idiomatic Expressions** - Recognizes and properly translates Afrikaans idioms
-- **Cultural Sensitivity** - Provides cultural context notes when relevant
-- **Alternative Translations** - Offers multiple translation options with contextual explanations
-- **Formality Detection** - Identifies formal vs. informal language usage
+## 🤖 Supported AI Providers
 
-### User Interface
+| Provider        | Free Tier | Local | Setup Required |
+| --------------- | --------- | ----- | -------------- |
+| OpenRouter      | ❌        | ❌    | API Key        |
+| Anthropic       | ❌        | ❌    | API Key        |
+| OpenAI          | ❌        | ❌    | API Key        |
+| Google Gemini   | ✅        | ❌    | API Key        |
+| DeepSeek        | ❌        | ❌    | API Key        |
+| Grok (xAI)      | ❌        | ❌    | API Key        |
+| Morph           | ❌        | ❌    | API Key        |
+| **Groq**        | ✅        | ❌    | API Key (Free) |
+| **Together AI** | ✅        | ❌    | API Key (Free) |
+| **Ollama**      | ✅        | ✅    | Local Install  |
 
-- **Clean, Modern Design** - Intuitive interface with smooth animations
-- **Responsive Layout** - Works seamlessly on desktop, tablet, and mobile
-- **Dark Mode Support** - Automatically adapts to system preferences
-- **Speech-to-Text** - Microphone input for spoken Afrikaans (where supported)
-- **Text-to-Speech** - Listen to the English translation
-- **Copy to Clipboard** - One-click copy functionality
+## 📁 Project Structure
 
-### Feedback System
-
-- **User Feedback** - Rate translations to help improve quality
-- **Local Storage** - Feedback stored for potential future ML improvements
+```
+translate/
+├── index.html          # Main HTML file
+├── styles.css          # Styles (7000+ lines)
+├── app.js              # Main application
+├── package.json        # NPM configuration
+├── vite.config.js      # Vite build configuration
+├── vercel.json         # Vercel deployment config
+│
+└── src/                # Modular source code
+    ├── index.js        # Module entry point
+    ├── config/         # Configuration
+    │   ├── constants.js    # App constants & defaults
+    │   └── signature.js    # Email signature config
+    ├── utils/          # Utilities
+    │   ├── storage.js      # LocalStorage wrapper
+    │   └── helpers.js      # Helper functions
+    ├── providers/      # AI Provider implementations
+    │   ├── base-provider.js    # Abstract base class
+    │   ├── openrouter.js, anthropic.js, openai.js, etc.
+    │   └── index.js        # Provider registry
+    ├── core/           # Core functionality
+    │   └── api-client.js   # API client with retry/fallback
+    ├── ui/             # UI components
+    │   ├── toast.js, modal.js, theme.js, speech.js
+    │   └── index.js
+    └── features/       # Feature modules
+        ├── prompts.js, translate.js, enhance.js, email.js
+        └── index.js
+```
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
 - A modern web browser (Chrome, Firefox, Safari, Edge)
-- An [OpenRouter API key](https://openrouter.ai) (free tier available)
+- Node.js 18+ (for development)
+- An API key from any supported provider
 
 ### Installation
 
@@ -45,9 +80,21 @@ A web-based AI-powered translation app that converts Afrikaans text to English w
    cd translate
    ```
 
-2. **Serve the files locally**
+2. **Install dependencies (optional, for development)**
 
-   Using Python:
+   ```bash
+   npm install
+   ```
+
+3. **Serve the files locally**
+
+   Using Vite (recommended):
+
+   ```bash
+   npm run dev
+   ```
+
+   Or using Python:
 
    ```bash
    python3 -m http.server 8080
@@ -61,65 +108,95 @@ A web-based AI-powered translation app that converts Afrikaans text to English w
 
    Or simply open `index.html` in your browser.
 
-3. **Enter your API key**
-   - On first launch, you'll be prompted to enter your OpenRouter API key
-   - Your key is stored locally in your browser and never sent to our servers
+4. **Enter your API key**
+   - On first launch, you'll be prompted to enter your API key
+   - Select your preferred provider from the settings
+   - Your keys are stored locally in your browser and never sent to our servers
 
 ## 📖 Usage
 
+### Translation Mode
+
 1. **Enter Text**: Type or paste Afrikaans text in the input area
 2. **Or Use Voice**: Click the microphone icon to speak in Afrikaans
-3. **Translate**: Click the "Translate" button or press `Ctrl/Cmd + Enter`
-4. **Review Results**: View the translation along with:
-   - Formality indicator (formal/informal/neutral)
-   - Alternative translations
-   - Cultural context notes
-   - Idiom explanations
-5. **Listen**: Click the speaker icon to hear the English translation
-6. **Copy**: Click the copy icon to copy the translation
-7. **Provide Feedback**: Rate the translation to help improve the system
+3. **Translate**: Click "Translate" or press `Ctrl/Cmd + Enter`
+4. **Review**: View translation with formality, alternatives, and cultural notes
 
-## 🎨 Example Translations
+### Chat Mode
 
-| Afrikaans                | English                           | Notes                   |
-| ------------------------ | --------------------------------- | ----------------------- |
-| Hoe gaan dit met jou?    | How are you?                      | Informal greeting       |
-| Ek is lief vir jou       | I love you                        | Expression of affection |
-| Baie dankie vir jou hulp | Thank you very much for your help | Formal gratitude        |
-| Dit gaan goed            | It's going well / I'm fine        | Common response         |
+1. Switch to Chat tab
+2. Have natural conversations with the AI
+3. Supports streaming responses for real-time output
+
+### Email Mode
+
+1. Switch to Email tab
+2. Enter or paste email content in Afrikaans
+3. Get professionally formatted English translation
+
+### Enhance Mode
+
+1. Switch to Enhance tab
+2. Paste any text for AI-powered improvement
+3. Receive suggestions and enhanced version
+
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut               | Action           |
+| ---------------------- | ---------------- |
+| `Ctrl/Cmd + Enter`     | Submit/Translate |
+| `Ctrl/Cmd + K`         | Clear input      |
+| `Ctrl/Cmd + Shift + C` | Copy output      |
+| `Alt + 1-6`            | Switch modes     |
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript
+- **Frontend**: HTML5, CSS3, Vanilla JavaScript (ES Modules)
+- **Build Tool**: Vite 5.0
 - **Styling**: Custom CSS with CSS Variables for theming
-- **API**: OpenRouter API (Claude 3.5 Sonnet model)
-- **Storage**: localStorage for API key and feedback
+- **APIs**: 10 AI providers (see table above)
+- **Storage**: localStorage for API keys, history, and settings
 - **Speech**: Web Speech API for voice input/output
+- **Deployment**: Vercel
 
-## 📁 Project Structure
+## 📜 NPM Scripts
 
-```
-translate/
-├── index.html      # Main HTML file
-├── styles.css      # Styles and responsive design
-├── app.js          # Application logic and API integration
-└── README.md       # Documentation
-```
-
-## 🔐 Privacy & Security
-
-- Your OpenRouter API key is stored locally in your browser's localStorage
-- No data is sent to any server other than OpenRouter's API
-- Feedback data is stored locally for potential future improvements
+```bash
+npm run dev      # Start development server
+npm run build    # Build for production
+npm run preview  # Preview production build
+npm run serve    # Alias for dev
+``API keys are stored locally in your browser's localStorage
+- No data is sent to any server other than your selected AI provider
 - No cookies or tracking mechanisms are used
+- All communication with APIs is encrypted (HTTPS)
+
+## 🔧 Development
+
+### Modular Architecture
+
+The app uses a modular ES Module architecture:
+
+- **Providers**: Each AI provider extends `BaseProvider` for consistent interface
+- **Registry**: `ProviderRegistry` manages provider lifecycle and fallback chains
+- **Features**: Business logic separated into feature modules
+- **UI Components**: Reusable UI managers (Toast, Modal, Theme, Speech)
+
+### Adding a New Provider
+
+1. Create `src/providers/your-provider.js` extending `BaseProvider`
+2. Implement required methods: `getEndpoint()`, `getHeaders()`, `formatRequest()`, `parseResponse()`
+3. Register in `src/providers/index.js`
+4. Add configuration to `src/config/constants.js`
 
 ## 🤝 Contributing
 
-Contributions are welcome! Feel free to:
+Contributions are welcome! Please:
 
-- Report bugs
-- Suggest new features
+- Report bugs via Issues
+- Suggest features
 - Submit pull requests
+- Follow existing code style
 
 ## 📄 License
 
@@ -127,6 +204,15 @@ This project is open source and available under the MIT License.
 
 ## 🙏 Acknowledgments
 
+- All AI provider teams for their excellent APIs
+- The Afrikaans language community for cultural insights
+- [Inter Font](https://fonts.google.com/specimen/Inter) for typography
+
+---
+
+**Live Demo**: [https://afrikaans-translator.vercel.app](https://afrikaans-translator.vercel.app)
+
 - [OpenRouter](https://openrouter.ai) for providing the AI translation API
 - The Afrikaans language community for cultural insights
 - [Inter Font](https://fonts.google.com/specimen/Inter) for typography
+```

@@ -41,6 +41,9 @@ Phone: +27 66 273 1270`;
         this.googleApiKey = localStorage.getItem('google_api_key') || '';
         this.grokApiKey = localStorage.getItem('grok_api_key') || '';
         this.morphApiKey = localStorage.getItem('morph_api_key') || '';
+        this.groqApiKey = localStorage.getItem('groq_api_key') || '';
+        this.togetherApiKey = localStorage.getItem('together_api_key') || '';
+        this.ollamaUrl = localStorage.getItem('ollama_url') || 'http://localhost:11434';
         
         // Current provider and model
         this.currentProvider = localStorage.getItem('current_provider') || 'openrouter';
@@ -95,11 +98,29 @@ Phone: +27 66 273 1270`;
             ],
             morph: [
                 'morph-v1'
+            ],
+            groq: [
+                'llama-3.3-70b-versatile',
+                'llama-3.1-8b-instant',
+                'qwen/qwen3-32b',
+                'deepseek-r1-distill-llama-70b'
+            ],
+            together: [
+                'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+                'meta-llama/Llama-3.2-3B-Instruct-Turbo',
+                'mistralai/Mixtral-8x7B-Instruct-v0.1',
+                'Qwen/Qwen2.5-7B-Instruct-Turbo'
+            ],
+            ollama: [
+                'llama3.2',
+                'llama3.1',
+                'mistral',
+                'qwen2.5'
             ]
         };
         
         // Cross-provider fallback order (when all models in a provider fail)
-        this.providerFallbackOrder = ['openrouter', 'openai', 'anthropic', 'google', 'deepseek', 'grok', 'morph'];
+        this.providerFallbackOrder = ['openrouter', 'groq', 'ollama', 'together', 'openai', 'anthropic', 'google', 'deepseek', 'grok', 'morph'];
         
         // DOM Elements
         this.inputText = document.getElementById('inputText');
@@ -119,6 +140,9 @@ Phone: +27 66 273 1270`;
         this.googleKeyInput = document.getElementById('googleKeyInput');
         this.grokKeyInput = document.getElementById('grokKeyInput');
         this.morphKeyInput = document.getElementById('morphKeyInput');
+        this.groqKeyInput = document.getElementById('groqKeyInput');
+        this.togetherKeyInput = document.getElementById('togetherKeyInput');
+        this.ollamaUrlInput = document.getElementById('ollamaUrlInput');
         
         // Provider tabs and sections
         this.providerTabs = document.getElementById('providerTabs');
@@ -129,6 +153,9 @@ Phone: +27 66 273 1270`;
         this.deepseekSection = document.getElementById('deepseekSection');
         this.grokSection = document.getElementById('grokSection');
         this.morphSection = document.getElementById('morphSection');
+        this.groqSection = document.getElementById('groqSection');
+        this.togetherSection = document.getElementById('togetherSection');
+        this.ollamaSection = document.getElementById('ollamaSection');
         
         // Model selects for each provider
         this.openrouterModelSelect = document.getElementById('openrouterModelSelect');
@@ -138,6 +165,9 @@ Phone: +27 66 273 1270`;
         this.deepseekModelSelect = document.getElementById('deepseekModelSelect');
         this.grokModelSelect = document.getElementById('grokModelSelect');
         this.morphModelSelect = document.getElementById('morphModelSelect');
+        this.groqModelSelect = document.getElementById('groqModelSelect');
+        this.togetherModelSelect = document.getElementById('togetherModelSelect');
+        this.ollamaModelSelect = document.getElementById('ollamaModelSelect');
         
         // Selection display
         this.selectionDisplay = document.getElementById('selectionDisplay');
@@ -1251,7 +1281,10 @@ Phone: +27 66 273 1270`;
             google: 'gemini-1.5-pro',
             deepseek: 'deepseek-chat',
             grok: 'grok-beta',
-            morph: 'morph-v1'
+            morph: 'morph-v1',
+            groq: 'llama-3.3-70b-versatile',
+            together: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+            ollama: 'llama3.2'
         };
         
         const storageKeys = {
@@ -1261,7 +1294,10 @@ Phone: +27 66 273 1270`;
             google: 'google_model',
             deepseek: 'deepseek_model',
             grok: 'grok_model',
-            morph: 'morph_model'
+            morph: 'morph_model',
+            groq: 'groq_model',
+            together: 'together_model',
+            ollama: 'ollama_model'
         };
         
         const key = storageKeys[provider] || 'openrouter_model';
@@ -1279,6 +1315,9 @@ Phone: +27 66 273 1270`;
             case 'deepseek': return this.deepseekApiKey;
             case 'grok': return this.grokApiKey;
             case 'morph': return this.morphApiKey;
+            case 'groq': return this.groqApiKey;
+            case 'together': return this.togetherApiKey;
+            case 'ollama': return this.ollamaUrl; // Ollama uses URL, not API key
             default: return this.openrouterApiKey;
         }
     }
@@ -1292,6 +1331,9 @@ Phone: +27 66 273 1270`;
         if (this.googleKeyInput) this.googleKeyInput.value = this.googleApiKey;
         if (this.grokKeyInput) this.grokKeyInput.value = this.grokApiKey;
         if (this.morphKeyInput) this.morphKeyInput.value = this.morphApiKey;
+        if (this.groqKeyInput) this.groqKeyInput.value = this.groqApiKey;
+        if (this.togetherKeyInput) this.togetherKeyInput.value = this.togetherApiKey;
+        if (this.ollamaUrlInput) this.ollamaUrlInput.value = this.ollamaUrl;
         
         // Set model selects to saved values
         this.loadSavedModelSelections();
@@ -1319,6 +1361,9 @@ Phone: +27 66 273 1270`;
         const savedDeepseekModel = localStorage.getItem('deepseek_model') || 'deepseek-reasoner';
         const savedGrokModel = localStorage.getItem('grok_model') || 'grok-3-latest';
         const savedMorphModel = localStorage.getItem('morph_model') || 'morph-v2';
+        const savedGroqModel = localStorage.getItem('groq_model') || 'llama-3.3-70b-versatile';
+        const savedTogetherModel = localStorage.getItem('together_model') || 'meta-llama/Llama-3.3-70B-Instruct-Turbo';
+        const savedOllamaModel = localStorage.getItem('ollama_model') || 'llama3.2';
         
         if (this.openrouterModelSelect) this.openrouterModelSelect.value = savedOpenrouterModel;
         if (this.anthropicModelSelect) this.anthropicModelSelect.value = savedAnthropicModel;
@@ -1327,6 +1372,9 @@ Phone: +27 66 273 1270`;
         if (this.deepseekModelSelect) this.deepseekModelSelect.value = savedDeepseekModel;
         if (this.grokModelSelect) this.grokModelSelect.value = savedGrokModel;
         if (this.morphModelSelect) this.morphModelSelect.value = savedMorphModel;
+        if (this.groqModelSelect) this.groqModelSelect.value = savedGroqModel;
+        if (this.togetherModelSelect) this.togetherModelSelect.value = savedTogetherModel;
+        if (this.ollamaModelSelect) this.ollamaModelSelect.value = savedOllamaModel;
     }
     
     switchProvider(provider) {
@@ -1376,6 +1424,15 @@ Phone: +27 66 273 1270`;
             case 'morph':
                 this.model = `morph/${this.morphModelSelect?.value || 'morph-v2'}`;
                 break;
+            case 'groq':
+                this.model = `groq/${this.groqModelSelect?.value || 'llama-3.3-70b-versatile'}`;
+                break;
+            case 'together':
+                this.model = `together/${this.togetherModelSelect?.value || 'meta-llama/Llama-3.3-70B-Instruct-Turbo'}`;
+                break;
+            case 'ollama':
+                this.model = `ollama/${this.ollamaModelSelect?.value || 'llama3.2'}`;
+                break;
         }
     }
     
@@ -1389,7 +1446,10 @@ Phone: +27 66 273 1270`;
             'google': 'Google Gemini',
             'deepseek': 'DeepSeek',
             'grok': 'Grok (xAI)',
-            'morph': 'Morph AI'
+            'morph': 'Morph AI',
+            'groq': 'Groq (Free)',
+            'together': 'Together AI (Free)',
+            'ollama': 'Ollama (Local)'
         };
         
         let modelName = '';
@@ -1414,6 +1474,15 @@ Phone: +27 66 273 1270`;
                 break;
             case 'morph':
                 modelName = this.morphModelSelect?.selectedOptions[0]?.text || this.model;
+                break;
+            case 'groq':
+                modelName = this.groqModelSelect?.selectedOptions[0]?.text || this.model;
+                break;
+            case 'together':
+                modelName = this.togetherModelSelect?.selectedOptions[0]?.text || this.model;
+                break;
+            case 'ollama':
+                modelName = this.ollamaModelSelect?.selectedOptions[0]?.text || this.model;
                 break;
         }
         
@@ -1441,6 +1510,9 @@ Phone: +27 66 273 1270`;
         const googleKey = this.googleKeyInput?.value.trim() || '';
         const grokKey = this.grokKeyInput?.value.trim() || '';
         const morphKey = this.morphKeyInput?.value.trim() || '';
+        const groqKey = this.groqKeyInput?.value.trim() || '';
+        const togetherKey = this.togetherKeyInput?.value.trim() || '';
+        const ollamaUrl = this.ollamaUrlInput?.value.trim() || 'http://localhost:11434';
         
         // Validate that the required key for selected provider is provided
         if (this.currentProvider === 'openai' && !openaiKey) {
@@ -1467,6 +1539,14 @@ Phone: +27 66 273 1270`;
             this.showToast('Please enter your Morph AI API key.', 'error');
             return;
         }
+        if (this.currentProvider === 'groq' && !groqKey) {
+            this.showToast('Please enter your Groq API key.', 'error');
+            return;
+        }
+        if (this.currentProvider === 'together' && !togetherKey) {
+            this.showToast('Please enter your Together AI API key.', 'error');
+            return;
+        }
         if (this.currentProvider === 'openrouter' && !openrouterKey) {
             this.showToast('Please enter your OpenRouter API key.', 'error');
             return;
@@ -1480,6 +1560,9 @@ Phone: +27 66 273 1270`;
         this.googleApiKey = googleKey;
         this.grokApiKey = grokKey;
         this.morphApiKey = morphKey;
+        this.groqApiKey = groqKey;
+        this.togetherApiKey = togetherKey;
+        this.ollamaUrl = ollamaUrl;
         
         // Save to localStorage
         localStorage.setItem('openrouter_api_key', openrouterKey);
@@ -1489,6 +1572,9 @@ Phone: +27 66 273 1270`;
         localStorage.setItem('google_api_key', googleKey);
         localStorage.setItem('grok_api_key', grokKey);
         localStorage.setItem('morph_api_key', morphKey);
+        localStorage.setItem('groq_api_key', groqKey);
+        localStorage.setItem('together_api_key', togetherKey);
+        localStorage.setItem('ollama_url', ollamaUrl);
         localStorage.setItem('current_provider', this.currentProvider);
         
         // Save model selections for each provider
@@ -1499,9 +1585,19 @@ Phone: +27 66 273 1270`;
         if (this.deepseekModelSelect) localStorage.setItem('deepseek_model', this.deepseekModelSelect.value);
         if (this.grokModelSelect) localStorage.setItem('grok_model', this.grokModelSelect.value);
         if (this.morphModelSelect) localStorage.setItem('morph_model', this.morphModelSelect.value);
+        if (this.groqModelSelect) localStorage.setItem('groq_model', this.groqModelSelect.value);
+        if (this.togetherModelSelect) localStorage.setItem('together_model', this.togetherModelSelect.value);
+        if (this.ollamaModelSelect) localStorage.setItem('ollama_model', this.ollamaModelSelect.value);
         
         this.hideModal();
         this.showToast('Settings saved successfully!', 'success');
+    }
+    
+    // Sanitize header values to ensure they only contain ISO-8859-1 characters
+    sanitizeHeaderValue(value) {
+        if (!value) return '';
+        // Remove any non-ASCII characters that could cause fetch to fail
+        return String(value).replace(/[^\x00-\xFF]/g, '');
     }
     
     getApiConfig() {
@@ -1518,7 +1614,7 @@ Phone: +27 66 273 1270`;
                 isAnthropicDirect: true,
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-api-key': this.anthropicApiKey,
+                    'x-api-key': this.sanitizeHeaderValue(this.anthropicApiKey),
                     'anthropic-version': '2023-06-01'
                 }
             };
@@ -1526,7 +1622,7 @@ Phone: +27 66 273 1270`;
             // Google Gemini API
             const modelName = model.replace('google/', '');
             return {
-                endpoint: `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${this.googleApiKey}`,
+                endpoint: `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${this.sanitizeHeaderValue(this.googleApiKey)}`,
                 apiKey: this.googleApiKey,
                 model: modelName,
                 isO1Model: false,
@@ -1549,7 +1645,7 @@ Phone: +27 66 273 1270`;
                 isO1Model: isO1Model,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.openaiApiKey}`
+                    'Authorization': `Bearer ${this.sanitizeHeaderValue(this.openaiApiKey)}`
                 }
             };
         } else if (model.startsWith('deepseek/')) {
@@ -1562,7 +1658,7 @@ Phone: +27 66 273 1270`;
                 isO1Model: false,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.deepseekApiKey}`
+                    'Authorization': `Bearer ${this.sanitizeHeaderValue(this.deepseekApiKey)}`
                 }
             };
         } else if (model.startsWith('grok/')) {
@@ -1575,7 +1671,7 @@ Phone: +27 66 273 1270`;
                 isO1Model: false,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.grokApiKey}`
+                    'Authorization': `Bearer ${this.sanitizeHeaderValue(this.grokApiKey)}`
                 }
             };
         } else if (model.startsWith('morph/')) {
@@ -1588,7 +1684,49 @@ Phone: +27 66 273 1270`;
                 isO1Model: false,
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.morphApiKey}`
+                    'Authorization': `Bearer ${this.sanitizeHeaderValue(this.morphApiKey)}`
+                }
+            };
+        } else if (model.startsWith('groq/')) {
+            // Groq API (FREE - OpenAI-compatible)
+            const modelName = model.replace('groq/', '');
+            return {
+                endpoint: 'https://api.groq.com/openai/v1/chat/completions',
+                apiKey: this.groqApiKey,
+                model: modelName,
+                isO1Model: false,
+                isFreeProvider: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.sanitizeHeaderValue(this.groqApiKey)}`
+                }
+            };
+        } else if (model.startsWith('together/')) {
+            // Together AI API (FREE tier - OpenAI-compatible)
+            const modelName = model.replace('together/', '');
+            return {
+                endpoint: 'https://api.together.xyz/v1/chat/completions',
+                apiKey: this.togetherApiKey,
+                model: modelName,
+                isO1Model: false,
+                isFreeProvider: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.sanitizeHeaderValue(this.togetherApiKey)}`
+                }
+            };
+        } else if (model.startsWith('ollama/')) {
+            // Ollama Local API (FREE - runs locally, OpenAI-compatible)
+            const modelName = model.replace('ollama/', '');
+            return {
+                endpoint: `${this.ollamaUrl}/v1/chat/completions`,
+                apiKey: 'ollama', // Ollama doesn't need a real API key
+                model: modelName,
+                isO1Model: false,
+                isFreeProvider: true,
+                isLocalProvider: true,
+                headers: {
+                    'Content-Type': 'application/json'
                 }
             };
         } else {
@@ -1600,8 +1738,8 @@ Phone: +27 66 273 1270`;
                 isO1Model: model.includes('o1-') || model.includes('/o1'),
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.openrouterApiKey}`,
-                    'HTTP-Referer': window.location.origin,
+                    'Authorization': `Bearer ${this.sanitizeHeaderValue(this.openrouterApiKey)}`,
+                    'HTTP-Referer': this.sanitizeHeaderValue(window.location.origin),
                     'X-Title': 'Afrikaans to English Translator'
                 }
             };
@@ -6117,266 +6255,51 @@ ${this.emailSignatureHTML}`;
     }
     
     // ==================== QUICK MODEL SWITCHER ====================
+    // DISABLED - Using settings modal for model selection only
     
     initQuickModelSwitcher() {
-        // Sidebar model switcher elements
-        this.modeSidebarModel = document.querySelector('.mode-sidebar-model');
-        this.quickModelBtn = document.getElementById('quickModelBtn');
-        this.quickModelName = document.getElementById('quickModelName');
-        this.quickModelDropdown = document.getElementById('quickModelDropdown');
-        this.quickModelSearch = document.getElementById('quickModelSearch');
-        this.quickModelList = document.getElementById('quickModelList');
-        this.quickProviderTabs = document.getElementById('quickProviderTabs');
-        
-        // Update displayed model name on all elements
-        this.updateQuickModelDisplay();
-        
-        // Toggle dropdown on sidebar model button click
-        if (this.quickModelBtn) {
-            this.quickModelBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.toggleQuickModelDropdown();
-            });
-        }
-        
-        // Provider tabs click handlers
-        if (this.quickProviderTabs) {
-            this.quickProviderTabs.addEventListener('click', (e) => {
-                const tab = e.target.closest('.quick-provider-tab');
-                if (tab) {
-                    e.stopPropagation();
-                    this.switchQuickProvider(tab.dataset.provider);
-                }
-            });
-        }
-        
-        // Prevent dropdown from closing when clicking inside it
-        if (this.quickModelDropdown) {
-            this.quickModelDropdown.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-        }
-        
-        // Search filter
-        if (this.quickModelSearch) {
-            this.quickModelSearch.addEventListener('input', (e) => {
-                this.filterQuickModels(e.target.value);
-            });
-            this.quickModelSearch.addEventListener('click', (e) => e.stopPropagation());
-        }
-        
-        // Model option clicks
-        if (this.quickModelList) {
-            this.quickModelList.addEventListener('click', (e) => {
-                const option = e.target.closest('.quick-model-option');
-                if (option) {
-                    const modelId = option.dataset.model;
-                    const provider = option.dataset.provider || 'openrouter';
-                    this.selectQuickModel(modelId, provider);
-                }
-            });
-        }
-        
-        // Close on click outside
-        document.addEventListener('click', (e) => {
-            const modeSidebarModel = document.querySelector('.mode-sidebar-model');
-            const quickModelDropdown = document.getElementById('quickModelDropdown');
-            
-            // Don't close if clicking inside the model switcher or the dropdown
-            if (modeSidebarModel && !modeSidebarModel.contains(e.target) && 
-                quickModelDropdown && !quickModelDropdown.contains(e.target)) {
-                this.closeQuickModelDropdown();
-            }
-        });
-        
-        // Close on Escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.closeQuickModelDropdown();
-            }
-        });
-        
-        // Set initial provider tab based on current provider
-        this.updateQuickProviderTab();
+        // Quick model switcher has been removed from the UI
+        // Model selection now happens only through the Settings modal
+        // This function is kept as a stub to prevent errors
+        return;
     }
     
-    switchQuickProvider(provider) {
-        if (!provider) return;
-        
-        // Update tab active states
-        const tabs = document.querySelectorAll('.quick-provider-tab');
-        tabs.forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.provider === provider);
-        });
-        
-        // Show/hide provider model groups
-        const modelGroups = document.querySelectorAll('.quick-provider-models');
-        modelGroups.forEach(group => {
-            group.classList.toggle('active', group.dataset.provider === provider);
-        });
-        
-        // Clear search when switching providers
-        if (this.quickModelSearch) {
-            this.quickModelSearch.value = '';
-            this.filterQuickModels('');
-        }
-    }
-    
-    updateQuickProviderTab() {
-        // Set the active provider tab based on current provider
-        const tabs = document.querySelectorAll('.quick-provider-tab');
-        const modelGroups = document.querySelectorAll('.quick-provider-models');
-        
-        tabs.forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.provider === this.currentProvider);
-        });
-        
-        modelGroups.forEach(group => {
-            group.classList.toggle('active', group.dataset.provider === this.currentProvider);
-        });
-    }
-    
-    toggleQuickModelDropdown() {
-        const modeSidebarModel = document.querySelector('.mode-sidebar-model');
-        if (modeSidebarModel?.classList.contains('open')) {
-            this.closeQuickModelDropdown();
-        } else {
-            this.openQuickModelDropdown();
-        }
-    }
-    
-    openQuickModelDropdown() {
-        const modeSidebarModel = document.querySelector('.mode-sidebar-model');
-        if (!modeSidebarModel) return;
-        
-        modeSidebarModel.classList.add('open');
-        
-        // Update provider tab to match current provider
-        this.updateQuickProviderTab();
-        
-        // Update active state on current model
-        this.updateQuickModelActiveState();
-        
-        // Focus search input
-        if (this.quickModelSearch) {
-            this.quickModelSearch.value = '';
-            this.filterQuickModels('');
-            setTimeout(() => this.quickModelSearch.focus(), 100);
-        }
-    }
-    
-    closeQuickModelDropdown() {
-        const modeSidebarModel = document.querySelector('.mode-sidebar-model');
-        if (modeSidebarModel) {
-            modeSidebarModel.classList.remove('open');
-        }
-    }
-    
-    updateQuickModelActiveState() {
-        if (!this.quickModelList) return;
-        
-        const options = this.quickModelList.querySelectorAll('.quick-model-option');
-        options.forEach(option => {
-            const isActive = option.dataset.model === this.model && option.dataset.provider === this.currentProvider;
-            option.classList.toggle('active', isActive);
-        });
-    }
-    
-    filterQuickModels(searchTerm) {
-        if (!this.quickModelList) return;
-        
-        const term = searchTerm.toLowerCase().trim();
-        
-        // Only filter within the active provider section
-        const activeProvider = document.querySelector('.quick-provider-models.active');
-        if (!activeProvider) return;
-        
-        const options = activeProvider.querySelectorAll('.quick-model-option');
-        const groups = activeProvider.querySelectorAll('.quick-model-group');
-        
-        options.forEach(option => {
-            const text = option.textContent.toLowerCase();
-            const modelId = (option.dataset.model || '').toLowerCase();
-            const matches = !term || text.includes(term) || modelId.includes(term);
-            option.classList.toggle('hidden', !matches);
-        });
-        
-        // Hide empty groups
-        groups.forEach(group => {
-            const visibleOptions = group.querySelectorAll('.quick-model-option:not(.hidden)');
-            group.style.display = visibleOptions.length > 0 ? 'block' : 'none';
-        });
-    }
+    // Stub functions to prevent errors if called elsewhere
+    switchQuickProvider(provider) { return; }
+    updateQuickProviderTab() { return; }
+    toggleQuickModelDropdown() { return; }
+    openQuickModelDropdown() { return; }
+    closeQuickModelDropdown() { return; }
+    updateQuickModelActiveState() { return; }
+    filterQuickModels(searchTerm) { return; }
     
     selectQuickModel(modelId, provider) {
+        // Redirect to proper model selection via settings
         if (!modelId) return;
         
-        // Update model and provider
         this.model = modelId;
         this.currentProvider = provider;
-        
-        // Save provider to localStorage
         localStorage.setItem('current_provider', provider);
         
-        // Save model to the correct provider-specific storage
-        switch (provider) {
-            case 'openrouter':
-                localStorage.setItem('openrouter_model', modelId);
-                if (this.openrouterModelSelect) {
-                    this.openrouterModelSelect.value = modelId;
-                }
-                break;
-            case 'anthropic':
-                localStorage.setItem('anthropic_model', modelId);
-                if (this.anthropicModelSelect) {
-                    this.anthropicModelSelect.value = modelId;
-                }
-                break;
-            case 'openai':
-                localStorage.setItem('openai_model', modelId);
-                if (this.openaiModelSelect) {
-                    this.openaiModelSelect.value = modelId;
-                }
-                break;
-            case 'google':
-                localStorage.setItem('google_model', modelId);
-                if (this.googleModelSelect) {
-                    this.googleModelSelect.value = modelId;
-                }
-                break;
-            case 'deepseek':
-                localStorage.setItem('deepseek_model', modelId);
-                if (this.deepseekModelSelect) {
-                    this.deepseekModelSelect.value = modelId;
-                }
-                break;
-            case 'grok':
-                localStorage.setItem('grok_model', modelId);
-                if (this.grokModelSelect) {
-                    this.grokModelSelect.value = modelId;
-                }
-                break;
+        const storageKeyMap = {
+            openrouter: 'openrouter_model',
+            anthropic: 'anthropic_model',
+            openai: 'openai_model',
+            google: 'google_model',
+            deepseek: 'deepseek_model',
+            grok: 'grok_model',
+            groq: 'groq_model',
+            together: 'together_model',
+            ollama: 'ollama_model'
+        };
+        
+        if (storageKeyMap[provider]) {
+            localStorage.setItem(storageKeyMap[provider], modelId);
         }
         
-        // Update UI
         this.updateQuickModelDisplay();
         this.updateChatHeader();
         this.updateSelectionDisplay();
-        
-        // Close dropdown
-        this.closeQuickModelDropdown();
-        
-        // Show toast notification with provider name
-        const providerNames = {
-            openrouter: 'OpenRouter',
-            anthropic: 'Anthropic',
-            openai: 'OpenAI',
-            google: 'Google',
-            deepseek: 'DeepSeek',
-            grok: 'Grok'
-        };
-        const modelName = this.getReadableModelName();
-        this.showToast(`Switched to ${providerNames[provider]}: ${modelName}`, 'success');
     }
     
     updateQuickModelDisplay() {
