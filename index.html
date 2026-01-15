@@ -15,6 +15,189 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 <body>
+    <!-- Mode Sidebar (Page Selection) -->
+    <aside class="mode-sidebar" id="modeSidebar">
+        <div class="mode-sidebar-header">
+            <div class="mode-sidebar-logo">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                    <path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+                </svg>
+            </div>
+        </div>
+        <nav class="mode-sidebar-nav">
+            <button class="mode-sidebar-btn" id="chatMode" data-mode="chat" title="Chat">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                </svg>
+                <span class="mode-sidebar-label">Chat</span>
+            </button>
+            <button class="mode-sidebar-btn active" id="translateMode" data-mode="translate" title="Translate">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                    <path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+                </svg>
+                <span class="mode-sidebar-label">Translate</span>
+            </button>
+            <button class="mode-sidebar-btn" id="enhanceMode" data-mode="enhance" title="Enhance">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                </svg>
+                <span class="mode-sidebar-label">Enhance</span>
+            </button>
+            <button class="mode-sidebar-btn" id="emailMode" data-mode="email" title="Email">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                </svg>
+                <span class="mode-sidebar-label">Email</span>
+            </button>
+            <button class="mode-sidebar-btn" id="agentMode" data-mode="agent" title="Ask AI">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+                </svg>
+                <span class="mode-sidebar-label">Ask AI</span>
+            </button>
+            <button class="mode-sidebar-btn" id="strategyMode" data-mode="strategy" title="Strategy">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                </svg>
+                <span class="mode-sidebar-label">Strategy</span>
+            </button>
+        </nav>
+        
+        <!-- Quick Model Switcher in Sidebar -->
+        <div class="mode-sidebar-model">
+            <button class="sidebar-model-btn" id="quickModelBtn" title="Change AI Model">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                </svg>
+                <span class="sidebar-model-name" id="quickModelName">Claude 3.5</span>
+            </button>
+            <div class="quick-model-dropdown sidebar-dropdown" id="quickModelDropdown">
+                <!-- Provider Tabs -->
+                <div class="quick-provider-tabs" id="quickProviderTabs">
+                    <button class="quick-provider-tab active" data-provider="openrouter" title="OpenRouter">OpenRouter</button>
+                    <button class="quick-provider-tab" data-provider="anthropic" title="Anthropic">Anthropic</button>
+                    <button class="quick-provider-tab" data-provider="openai" title="OpenAI">OpenAI</button>
+                    <button class="quick-provider-tab" data-provider="google" title="Google">Google</button>
+                    <button class="quick-provider-tab" data-provider="deepseek" title="DeepSeek">DeepSeek</button>
+                    <button class="quick-provider-tab" data-provider="grok" title="Grok">Grok</button>
+                </div>
+                <div class="quick-model-search">
+                    <input type="text" id="quickModelSearch" placeholder="Search models...">
+                </div>
+                <div class="quick-model-list" id="quickModelList">
+                    <!-- OpenRouter Models -->
+                    <div class="quick-provider-models active" data-provider="openrouter">
+                        <div class="quick-model-group">
+                            <div class="quick-model-group-title">Top Tier</div>
+                            <div class="quick-model-option" data-model="anthropic/claude-sonnet-4" data-provider="openrouter">Claude Sonnet 4</div>
+                            <div class="quick-model-option" data-model="anthropic/claude-3.5-sonnet" data-provider="openrouter">Claude 3.5 Sonnet</div>
+                            <div class="quick-model-option" data-model="anthropic/claude-3-opus" data-provider="openrouter">Claude 3 Opus</div>
+                            <div class="quick-model-option" data-model="openai/gpt-4o" data-provider="openrouter">GPT-4o</div>
+                            <div class="quick-model-option" data-model="google/gemini-pro-1.5" data-provider="openrouter">Gemini Pro 1.5</div>
+                        </div>
+                        <div class="quick-model-group">
+                            <div class="quick-model-group-title">Fast & Efficient</div>
+                            <div class="quick-model-option" data-model="anthropic/claude-3.5-haiku" data-provider="openrouter">Claude 3.5 Haiku</div>
+                            <div class="quick-model-option" data-model="openai/gpt-4o-mini" data-provider="openrouter">GPT-4o Mini</div>
+                            <div class="quick-model-option" data-model="google/gemini-flash-1.5" data-provider="openrouter">Gemini Flash 1.5</div>
+                            <div class="quick-model-option" data-model="meta-llama/llama-3.1-70b-instruct" data-provider="openrouter">Llama 3.1 70B</div>
+                        </div>
+                        <div class="quick-model-group">
+                            <div class="quick-model-group-title">Reasoning</div>
+                            <div class="quick-model-option" data-model="openai/o1-preview" data-provider="openrouter">OpenAI O1 Preview</div>
+                            <div class="quick-model-option" data-model="openai/o1-mini" data-provider="openrouter">OpenAI O1 Mini</div>
+                            <div class="quick-model-option" data-model="deepseek/deepseek-r1" data-provider="openrouter">DeepSeek R1</div>
+                            <div class="quick-model-option" data-model="deepseek/deepseek-chat" data-provider="openrouter">DeepSeek Chat</div>
+                        </div>
+                        <div class="quick-model-group">
+                            <div class="quick-model-group-title">Budget Friendly</div>
+                            <div class="quick-model-option" data-model="mistralai/mistral-large" data-provider="openrouter">Mistral Large</div>
+                            <div class="quick-model-option" data-model="qwen/qwen-2.5-72b-instruct" data-provider="openrouter">Qwen 2.5 72B</div>
+                            <div class="quick-model-option" data-model="meta-llama/llama-3.1-8b-instruct" data-provider="openrouter">Llama 3.1 8B (Free)</div>
+                        </div>
+                    </div>
+                    <!-- Anthropic Direct Models -->
+                    <div class="quick-provider-models" data-provider="anthropic">
+                        <div class="quick-model-group">
+                            <div class="quick-model-group-title">Claude Models</div>
+                            <div class="quick-model-option" data-model="claude-sonnet-4-20250514" data-provider="anthropic">Claude Sonnet 4</div>
+                            <div class="quick-model-option" data-model="claude-3-5-sonnet-20241022" data-provider="anthropic">Claude 3.5 Sonnet</div>
+                            <div class="quick-model-option" data-model="claude-3-5-haiku-20241022" data-provider="anthropic">Claude 3.5 Haiku</div>
+                            <div class="quick-model-option" data-model="claude-3-opus-20240229" data-provider="anthropic">Claude 3 Opus</div>
+                            <div class="quick-model-option" data-model="claude-3-haiku-20240307" data-provider="anthropic">Claude 3 Haiku</div>
+                        </div>
+                    </div>
+                    <!-- OpenAI Direct Models -->
+                    <div class="quick-provider-models" data-provider="openai">
+                        <div class="quick-model-group">
+                            <div class="quick-model-group-title">GPT-5 Series</div>
+                            <div class="quick-model-option" data-model="gpt-5" data-provider="openai">GPT-5</div>
+                            <div class="quick-model-option" data-model="gpt-5-mini" data-provider="openai">GPT-5 Mini</div>
+                            <div class="quick-model-option" data-model="gpt-5-nano" data-provider="openai">GPT-5 Nano</div>
+                        </div>
+                        <div class="quick-model-group">
+                            <div class="quick-model-group-title">GPT-4 Series</div>
+                            <div class="quick-model-option" data-model="gpt-4.1" data-provider="openai">GPT-4.1</div>
+                            <div class="quick-model-option" data-model="gpt-4.1-mini" data-provider="openai">GPT-4.1 Mini</div>
+                            <div class="quick-model-option" data-model="gpt-4.1-nano" data-provider="openai">GPT-4.1 Nano</div>
+                            <div class="quick-model-option" data-model="gpt-4o-2024-11-20" data-provider="openai">GPT-4o</div>
+                            <div class="quick-model-option" data-model="gpt-4-turbo" data-provider="openai">GPT-4 Turbo</div>
+                        </div>
+                        <div class="quick-model-group">
+                            <div class="quick-model-group-title">Reasoning</div>
+                            <div class="quick-model-option" data-model="o3-mini-2025-01-31" data-provider="openai">O3 Mini</div>
+                        </div>
+                        <div class="quick-model-group">
+                            <div class="quick-model-group-title">Legacy</div>
+                            <div class="quick-model-option" data-model="gpt-3.5-turbo" data-provider="openai">GPT-3.5 Turbo</div>
+                        </div>
+                    </div>
+                    <!-- Google Models -->
+                    <div class="quick-provider-models" data-provider="google">
+                        <div class="quick-model-group">
+                            <div class="quick-model-group-title">Gemini Models</div>
+                            <div class="quick-model-option" data-model="gemini-1.5-pro" data-provider="google">Gemini 1.5 Pro</div>
+                            <div class="quick-model-option" data-model="gemini-1.5-flash" data-provider="google">Gemini 1.5 Flash</div>
+                            <div class="quick-model-option" data-model="gemini-pro" data-provider="google">Gemini Pro</div>
+                        </div>
+                    </div>
+                    <!-- DeepSeek Models -->
+                    <div class="quick-provider-models" data-provider="deepseek">
+                        <div class="quick-model-group">
+                            <div class="quick-model-group-title">DeepSeek Models</div>
+                            <div class="quick-model-option" data-model="deepseek-chat" data-provider="deepseek">DeepSeek Chat</div>
+                            <div class="quick-model-option" data-model="deepseek-coder" data-provider="deepseek">DeepSeek Coder</div>
+                            <div class="quick-model-option" data-model="deepseek-reasoner" data-provider="deepseek">DeepSeek Reasoner</div>
+                        </div>
+                    </div>
+                    <!-- Grok Models -->
+                    <div class="quick-provider-models" data-provider="grok">
+                        <div class="quick-model-group">
+                            <div class="quick-model-group-title">Grok Models</div>
+                            <div class="quick-model-option" data-model="grok-beta" data-provider="grok">Grok Beta</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mode-sidebar-footer">
+            <button class="mode-sidebar-settings" id="settingsBtnSidebar" title="Settings">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+                </svg>
+            </button>
+            <button class="mode-sidebar-theme" id="themeToggleSidebar" title="Toggle Theme">
+                <svg class="theme-icon-light" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1z"/>
+                </svg>
+                <svg class="theme-icon-dark" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="display:none;">
+                    <path d="M9.5,2c-1.82,0-3.53,0.5-5,1.35c2.99,1.73,5,4.95,5,8.65s-2.01,6.92-5,8.65C5.97,21.5,7.68,22,9.5,22c5.52,0,10-4.48,10-10S15.02,2,9.5,2z"/>
+                </svg>
+            </button>
+        </div>
+    </aside>
+
     <!-- Conversation Sidebar -->
     <aside class="chat-sidebar" id="chatSidebar">
         <div class="sidebar-header">
@@ -194,48 +377,6 @@
         </header>
 
         <main class="translator">
-            <!-- Mode Toggle -->
-            <div class="mode-toggle-container">
-                <div class="mode-toggle">
-                    <button class="mode-btn" id="chatMode" data-mode="chat">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
-                        </svg>
-                        Chat
-                    </button>
-                    <button class="mode-btn active" id="translateMode" data-mode="translate">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                            <path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
-                        </svg>
-                        Translate
-                    </button>
-                    <button class="mode-btn" id="enhanceMode" data-mode="enhance">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                        </svg>
-                        Enhance
-                    </button>
-                    <button class="mode-btn" id="emailMode" data-mode="email">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-                        </svg>
-                        Email
-                    </button>
-                    <button class="mode-btn" id="agentMode" data-mode="agent">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
-                        </svg>
-                        Ask AI
-                    </button>
-                    <button class="mode-btn" id="strategyMode" data-mode="strategy">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                        </svg>
-                        Strategy
-                    </button>
-                </div>
-            </div>
-
             <!-- Chat Interface (New) -->
             <div class="chat-container" id="chatContainer" style="display: none;">
                 <!-- Chat Header Bar -->
@@ -403,7 +544,6 @@
                     </div>
                     <div class="chat-info">
                         <span class="token-counter" id="tokenCounter">0 tokens</span>
-                        <span class="model-indicator" id="modelIndicator">Claude 3.5 Sonnet</span>
                         <button class="stop-generation-btn" id="stopGenerationBtn" style="display: none;">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
                                 <path d="M6 6h12v12H6z"/>
@@ -446,13 +586,15 @@
 
                 <!-- Translate Button -->
                 <div class="translate-section">
-                    <button class="translate-btn" id="translateBtn">
-                        <span class="btn-text">Translate</span>
-                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z" fill="currentColor"/>
-                        </svg>
-                        <div class="btn-loader" id="btnLoader"></div>
-                    </button>
+                    <div class="action-model-row">
+                        <button class="translate-btn" id="translateBtn">
+                            <span class="btn-text">Translate</span>
+                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z" fill="currentColor"/>
+                            </svg>
+                            <div class="btn-loader" id="btnLoader"></div>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Output Section -->
@@ -1436,6 +1578,9 @@
                             <optgroup label="💰 Budget Options">
                                 <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
                             </optgroup>
+                            <optgroup label="🧠 Reasoning">
+                                <option value="o3-mini-2025-01-31">O3 Mini (Reasoning)</option>
+                            </optgroup>
                         </select>
                         <p class="model-hint">🚀 You have access to GPT-5 - the most capable model!</p>
                     </div>
@@ -1570,6 +1715,25 @@
                 <div class="current-selection" id="currentSelection">
                     <span class="selection-label">Selected:</span>
                     <span class="selection-value" id="selectionDisplay">OpenRouter - Claude 3.5 Sonnet</span>
+                </div>
+                
+                <!-- Auto-Fallback Settings -->
+                <div class="fallback-settings">
+                    <div class="fallback-toggle-row">
+                        <div class="fallback-info">
+                            <label class="fallback-label">🔄 Auto-Fallback Mode</label>
+                            <p class="fallback-hint">Automatically switch to backup models when rate limits or errors occur</p>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="fallbackToggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                    <div class="fallback-status" id="fallbackStatus">
+                        <span class="status-label">Model Health:</span>
+                        <span class="status-value" id="modelHealthDisplay">All models available</span>
+                        <button class="reset-health-btn" id="resetHealthBtn" title="Reset model health tracking">↻ Reset</button>
+                    </div>
                 </div>
                 
                 <div class="modal-buttons">

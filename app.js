@@ -44,7 +44,62 @@ Phone: +27 66 273 1270`;
         
         // Current provider and model
         this.currentProvider = localStorage.getItem('current_provider') || 'openrouter';
-        this.model = localStorage.getItem('openrouter_model') || 'anthropic/claude-3.5-sonnet';
+        
+        // Load model based on current provider
+        this.model = this.getModelForProvider(this.currentProvider);
+        
+        // Model Fallback & Retry Configuration
+        this.fallbackEnabled = localStorage.getItem('fallback_enabled') !== 'false'; // Default enabled
+        this.maxRetries = 3;
+        this.retryDelayMs = 1000; // Base delay for exponential backoff
+        
+        // Model health tracking (stored in memory, reset on page load)
+        this.modelHealth = {}; // { modelId: { failures: 0, lastFailure: timestamp, available: true } }
+        
+        // Fallback model chains - ordered by priority (most reliable first)
+        // These are OpenRouter models that typically have higher rate limits
+        this.fallbackChains = {
+            openrouter: [
+                'anthropic/claude-3.5-sonnet',
+                'anthropic/claude-3-haiku',
+                'openai/gpt-4o-mini',
+                'openai/gpt-4o',
+                'google/gemini-1.5-flash',
+                'google/gemini-1.5-pro',
+                'meta-llama/llama-3.1-70b-instruct',
+                'mistralai/mistral-large',
+                'deepseek/deepseek-chat'
+            ],
+            anthropic: [
+                'claude-3-5-sonnet-20241022',
+                'claude-3-haiku-20240307',
+                'claude-3-opus-20240229'
+            ],
+            openai: [
+                'gpt-4o-mini',
+                'gpt-4o',
+                'gpt-4-turbo',
+                'gpt-3.5-turbo'
+            ],
+            google: [
+                'gemini-1.5-flash',
+                'gemini-1.5-pro',
+                'gemini-pro'
+            ],
+            deepseek: [
+                'deepseek-chat',
+                'deepseek-coder'
+            ],
+            grok: [
+                'grok-beta'
+            ],
+            morph: [
+                'morph-v1'
+            ]
+        };
+        
+        // Cross-provider fallback order (when all models in a provider fail)
+        this.providerFallbackOrder = ['openrouter', 'openai', 'anthropic', 'google', 'deepseek', 'grok', 'morph'];
         
         // DOM Elements
         this.inputText = document.getElementById('inputText');
@@ -374,10 +429,8 @@ Phone: +27 66 273 1270`;
         this.initAdvancedFeatures();
         this.updateCharCount();
         
-        // Check if API key exists
-        if (!this.apiKey) {
-            this.showModal();
-        }
+        // API keys are saved in localStorage - no need to auto-show settings
+        // User can access settings from the sidebar when needed
     }
     
     // ==================== CHAT INITIALIZATION ====================
@@ -406,7 +459,24 @@ Phone: +27 66 273 1270`;
     }
     
     bindEvents() {
-        // Chat mode toggle
+        // Mode sidebar buttons - bind all mode buttons
+        document.querySelectorAll('.mode-sidebar-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.setMode(btn.dataset.mode));
+        });
+        
+        // Settings button in sidebar
+        const settingsBtnSidebar = document.getElementById('settingsBtnSidebar');
+        if (settingsBtnSidebar) {
+            settingsBtnSidebar.addEventListener('click', () => this.showModal());
+        }
+        
+        // Theme toggle in sidebar
+        const themeToggleSidebar = document.getElementById('themeToggleSidebar');
+        if (themeToggleSidebar) {
+            themeToggleSidebar.addEventListener('click', () => this.toggleTheme());
+        }
+        
+        // Chat mode toggle (legacy support)
         if (this.chatModeBtn) {
             this.chatModeBtn.addEventListener('click', () => this.setMode('chat'));
         }
@@ -608,6 +678,24 @@ Phone: +27 66 273 1270`;
             });
         });
         
+        // Fallback toggle and reset health button
+        const fallbackToggle = document.getElementById('fallbackToggle');
+        const resetHealthBtn = document.getElementById('resetHealthBtn');
+        
+        if (fallbackToggle) {
+            fallbackToggle.checked = this.fallbackEnabled;
+            fallbackToggle.addEventListener('change', () => {
+                this.toggleFallbackMode(fallbackToggle.checked);
+            });
+        }
+        
+        if (resetHealthBtn) {
+            resetHealthBtn.addEventListener('click', () => {
+                this.resetModelHealth();
+                this.updateModelHealthDisplay();
+            });
+        }
+        
         // Feedback
         this.feedbackGood.addEventListener('click', () => this.submitFeedback('good'));
         this.feedbackBad.addEventListener('click', () => this.submitFeedback('bad'));
@@ -623,13 +711,18 @@ Phone: +27 66 273 1270`;
     setMode(mode) {
         this.currentMode = mode;
         
-        // Update button states
+        // Update sidebar button states
+        document.querySelectorAll('.mode-sidebar-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.mode === mode);
+        });
+        
+        // Update legacy button states (if they exist)
         if (this.chatModeBtn) this.chatModeBtn.classList.toggle('active', mode === 'chat');
-        this.translateModeBtn.classList.toggle('active', mode === 'translate');
-        this.enhanceModeBtn.classList.toggle('active', mode === 'enhance');
-        this.emailModeBtn.classList.toggle('active', mode === 'email');
-        this.agentModeBtn.classList.toggle('active', mode === 'agent');
-        this.strategyModeBtn.classList.toggle('active', mode === 'strategy');
+        if (this.translateModeBtn) this.translateModeBtn.classList.toggle('active', mode === 'translate');
+        if (this.enhanceModeBtn) this.enhanceModeBtn.classList.toggle('active', mode === 'enhance');
+        if (this.emailModeBtn) this.emailModeBtn.classList.toggle('active', mode === 'email');
+        if (this.agentModeBtn) this.agentModeBtn.classList.toggle('active', mode === 'agent');
+        if (this.strategyModeBtn) this.strategyModeBtn.classList.toggle('active', mode === 'strategy');
         
         // Show/hide chat container vs translation container
         if (mode === 'chat') {
@@ -1149,6 +1242,47 @@ Phone: +27 66 273 1270`;
         }
     }
     
+    // Helper method to get the saved model for a specific provider
+    getModelForProvider(provider) {
+        const defaults = {
+            openrouter: 'anthropic/claude-3.5-sonnet',
+            anthropic: 'claude-3-5-sonnet-20241022',
+            openai: 'gpt-4o',
+            google: 'gemini-1.5-pro',
+            deepseek: 'deepseek-chat',
+            grok: 'grok-beta',
+            morph: 'morph-v1'
+        };
+        
+        const storageKeys = {
+            openrouter: 'openrouter_model',
+            anthropic: 'anthropic_model',
+            openai: 'openai_model',
+            google: 'google_model',
+            deepseek: 'deepseek_model',
+            grok: 'grok_model',
+            morph: 'morph_model'
+        };
+        
+        const key = storageKeys[provider] || 'openrouter_model';
+        const defaultModel = defaults[provider] || defaults.openrouter;
+        return localStorage.getItem(key) || defaultModel;
+    }
+    
+    // Helper method to get the API key for a specific provider
+    getApiKeyForProvider(provider) {
+        switch (provider) {
+            case 'openrouter': return this.openrouterApiKey;
+            case 'anthropic': return this.anthropicApiKey;
+            case 'openai': return this.openaiApiKey;
+            case 'google': return this.googleApiKey;
+            case 'deepseek': return this.deepseekApiKey;
+            case 'grok': return this.grokApiKey;
+            case 'morph': return this.morphApiKey;
+            default: return this.openrouterApiKey;
+        }
+    }
+    
     showModal() {
         // Populate API key inputs
         this.apiKeyInput.value = this.openrouterApiKey;
@@ -1167,6 +1301,11 @@ Phone: +27 66 273 1270`;
         
         // Update selection display
         this.updateSelectionDisplay();
+        
+        // Update fallback toggle state and health display
+        const fallbackToggle = document.getElementById('fallbackToggle');
+        if (fallbackToggle) fallbackToggle.checked = this.fallbackEnabled;
+        this.updateModelHealthDisplay();
         
         this.apiKeyModal.classList.add('visible');
     }
@@ -1474,6 +1613,21 @@ Phone: +27 66 273 1270`;
         // Models with specific completion token limits
         const modelName = model.toLowerCase();
         
+        // GPT-5 series: very high output limits
+        if (modelName.includes('gpt-5')) {
+            return Math.min(requestedTokens, 32000);
+        }
+        
+        // GPT-4.1 series: high output limits
+        if (modelName.includes('gpt-4.1')) {
+            return Math.min(requestedTokens, 32000);
+        }
+        
+        // O3 models: high reasoning output
+        if (modelName.includes('o3-')) {
+            return Math.min(requestedTokens, 65000);
+        }
+        
         // GPT-3.5-turbo variants: 4096 max output tokens
         if (modelName.includes('gpt-3.5-turbo')) {
             return Math.min(requestedTokens, 4000);
@@ -1608,17 +1762,276 @@ Phone: +27 66 273 1270`;
             isO1Model: apiConfig.isO1Model
         });
         
+        // Create error with status code attached for fallback system
+        const createApiError = (message, statusCode) => {
+            const error = new Error(message);
+            error.statusCode = statusCode;
+            return error;
+        };
+        
         if (response.status === 401) {
-            throw new Error('Invalid API key. Please check your API key in settings.');
+            throw createApiError('Invalid API key. Please check your API key in settings.', 401);
         } else if (response.status === 429) {
-            throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+            throw createApiError('Rate limit exceeded. Please wait a moment and try again.', 429);
         } else if (response.status === 400) {
             const errorMsg = errorData.error?.message || 'Bad request. Model may not exist or parameters invalid.';
-            throw new Error(errorMsg);
+            throw createApiError(errorMsg, 400);
         } else if (response.status === 404) {
-            throw new Error('Model not found. The model name may be incorrect.');
+            throw createApiError('Model not found. The model name may be incorrect.', 404);
+        } else if (response.status === 503) {
+            throw createApiError('Model temporarily unavailable. Trying fallback...', 503);
+        } else if (response.status === 502 || response.status === 504) {
+            throw createApiError('Gateway error. The model may be overloaded.', response.status);
         } else {
-            throw new Error(errorData.error?.message || `API error: ${response.status} - ${response.statusText}`);
+            throw createApiError(errorData.error?.message || `API error: ${response.status} - ${response.statusText}`, response.status);
+        }
+    }
+    
+    // ==================== MODEL FALLBACK & RETRY SYSTEM ====================
+    
+    /**
+     * Check if an error is retryable (rate limit or temporary failure)
+     */
+    isRetryableError(error, statusCode) {
+        const retryableCodes = [429, 500, 502, 503, 504];
+        const retryableMessages = ['rate limit', 'timeout', 'overloaded', 'capacity', 'temporarily'];
+        
+        if (retryableCodes.includes(statusCode)) return true;
+        if (error?.message) {
+            const msg = error.message.toLowerCase();
+            return retryableMessages.some(term => msg.includes(term));
+        }
+        return false;
+    }
+    
+    /**
+     * Check if error indicates model is unavailable (should try fallback)
+     */
+    shouldFallback(error, statusCode) {
+        const fallbackCodes = [404, 429, 500, 502, 503, 504];
+        const fallbackMessages = ['not found', 'rate limit', 'unavailable', 'not available', 'model', 'capacity', 'overloaded'];
+        
+        if (fallbackCodes.includes(statusCode)) return true;
+        if (error?.message) {
+            const msg = error.message.toLowerCase();
+            return fallbackMessages.some(term => msg.includes(term));
+        }
+        return false;
+    }
+    
+    /**
+     * Track model failure for health monitoring
+     */
+    trackModelFailure(modelId) {
+        if (!this.modelHealth[modelId]) {
+            this.modelHealth[modelId] = { failures: 0, lastFailure: null, available: true };
+        }
+        this.modelHealth[modelId].failures++;
+        this.modelHealth[modelId].lastFailure = Date.now();
+        
+        // Mark as unavailable after 3 consecutive failures
+        if (this.modelHealth[modelId].failures >= 3) {
+            this.modelHealth[modelId].available = false;
+            console.warn(`Model ${modelId} marked as unavailable after ${this.modelHealth[modelId].failures} failures`);
+        }
+    }
+    
+    /**
+     * Track model success and reset health
+     */
+    trackModelSuccess(modelId) {
+        this.modelHealth[modelId] = { failures: 0, lastFailure: null, available: true };
+    }
+    
+    /**
+     * Check if model is currently marked as available
+     */
+    isModelAvailable(modelId) {
+        const health = this.modelHealth[modelId];
+        if (!health) return true; // Unknown models are assumed available
+        
+        // Reset availability after 5 minutes
+        if (!health.available && health.lastFailure) {
+            const fiveMinutes = 5 * 60 * 1000;
+            if (Date.now() - health.lastFailure > fiveMinutes) {
+                health.available = true;
+                health.failures = 0;
+            }
+        }
+        return health.available;
+    }
+    
+    /**
+     * Get the fallback chain for current provider
+     */
+    getFallbackChain() {
+        const provider = this.currentProvider || 'openrouter';
+        return this.fallbackChains[provider] || this.fallbackChains.openrouter;
+    }
+    
+    /**
+     * Get next available fallback model
+     */
+    getNextFallbackModel(currentModel, triedModels = []) {
+        const chain = this.getFallbackChain();
+        
+        for (const model of chain) {
+            if (model !== currentModel && 
+                !triedModels.includes(model) && 
+                this.isModelAvailable(model)) {
+                return model;
+            }
+        }
+        
+        // If all models in current provider failed, try cross-provider fallback
+        if (this.openrouterApiKey && this.currentProvider !== 'openrouter') {
+            // OpenRouter gives access to many models, use it as ultimate fallback
+            for (const model of this.fallbackChains.openrouter) {
+                if (!triedModels.includes(model) && this.isModelAvailable(model)) {
+                    return { model, switchProvider: 'openrouter' };
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Sleep utility for retry delays
+     */
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    /**
+     * Execute API call with retry and fallback logic
+     */
+    async executeWithFallback(apiCallFn, options = {}) {
+        const { 
+            maxRetries = this.maxRetries,
+            showNotifications = true 
+        } = options;
+        
+        const originalModel = this.model;
+        const triedModels = [originalModel];
+        let lastError = null;
+        let currentModel = originalModel;
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                // Update model temporarily if using fallback
+                if (currentModel !== originalModel) {
+                    this.model = currentModel;
+                    if (showNotifications) {
+                        this.showToast(`Trying fallback model: ${this.getReadableModelName()}`, 'info');
+                    }
+                }
+                
+                const result = await apiCallFn();
+                
+                // Success - track it and restore original model
+                this.trackModelSuccess(currentModel);
+                this.model = originalModel;
+                return result;
+                
+            } catch (error) {
+                lastError = error;
+                const statusCode = error.statusCode || 0;
+                
+                console.warn(`API attempt ${attempt}/${maxRetries} failed for ${currentModel}:`, error.message);
+                this.trackModelFailure(currentModel);
+                
+                // Check if we should retry with same model (rate limit with backoff)
+                if (attempt < maxRetries && this.isRetryableError(error, statusCode)) {
+                    const delay = this.retryDelayMs * Math.pow(2, attempt - 1); // Exponential backoff
+                    if (showNotifications) {
+                        this.showToast(`Rate limited. Retrying in ${delay/1000}s...`, 'warning');
+                    }
+                    await this.sleep(delay);
+                    continue;
+                }
+                
+                // Check if we should try a fallback model
+                if (this.fallbackEnabled && this.shouldFallback(error, statusCode)) {
+                    const fallback = this.getNextFallbackModel(currentModel, triedModels);
+                    
+                    if (fallback) {
+                        if (typeof fallback === 'object' && fallback.switchProvider) {
+                            // Cross-provider fallback
+                            this.currentProvider = fallback.switchProvider;
+                            currentModel = fallback.model;
+                        } else {
+                            currentModel = fallback;
+                        }
+                        
+                        triedModels.push(currentModel);
+                        if (showNotifications) {
+                            this.showToast(`Switching to fallback model...`, 'info');
+                        }
+                        continue;
+                    }
+                }
+            }
+        }
+        
+        // All retries and fallbacks exhausted
+        this.model = originalModel;
+        throw lastError || new Error('All models failed. Please try again later.');
+    }
+    
+    /**
+     * Toggle fallback mode on/off
+     */
+    toggleFallbackMode(enabled) {
+        this.fallbackEnabled = enabled;
+        localStorage.setItem('fallback_enabled', enabled.toString());
+        this.showToast(enabled ? 'Auto-fallback enabled' : 'Auto-fallback disabled', 'success');
+    }
+    
+    /**
+     * Reset all model health tracking
+     */
+    resetModelHealth() {
+        this.modelHealth = {};
+        this.showToast('Model health reset. All models marked as available.', 'success');
+    }
+    
+    /**
+     * Get model health status for UI display
+     */
+    getModelHealthStatus() {
+        const statuses = [];
+        for (const [model, health] of Object.entries(this.modelHealth)) {
+            statuses.push({
+                model,
+                available: health.available,
+                failures: health.failures,
+                lastFailure: health.lastFailure ? new Date(health.lastFailure).toLocaleTimeString() : null
+            });
+        }
+        return statuses;
+    }
+    
+    /**
+     * Update the model health display in settings modal
+     */
+    updateModelHealthDisplay() {
+        const display = document.getElementById('modelHealthDisplay');
+        if (!display) return;
+        
+        const statuses = this.getModelHealthStatus();
+        const unavailableCount = statuses.filter(s => !s.available).length;
+        const failingCount = statuses.filter(s => s.available && s.failures > 0).length;
+        
+        if (unavailableCount > 0) {
+            display.textContent = `${unavailableCount} model(s) temporarily unavailable`;
+            display.className = 'status-value error';
+        } else if (failingCount > 0) {
+            display.textContent = `${failingCount} model(s) experiencing issues`;
+            display.className = 'status-value warning';
+        } else {
+            display.textContent = 'All models available';
+            display.className = 'status-value';
         }
     }
     
@@ -1649,7 +2062,11 @@ Phone: +27 66 273 1270`;
         this.hideDetails();
         
         try {
-            const result = await this.callTranslationAPI(text);
+            // Use fallback system for resilient API calls
+            const result = await this.executeWithFallback(
+                () => this.callTranslationAPI(text),
+                { showNotifications: true }
+            );
             this.displayTranslation(result);
         } catch (error) {
             console.error('Translation error:', error);
@@ -2433,7 +2850,11 @@ Always respond with valid JSON only, no additional text.`;
         this.hideEnhancement();
         
         try {
-            const result = await this.callEnhancementAPI(text);
+            // Use fallback system for resilient API calls
+            const result = await this.executeWithFallback(
+                () => this.callEnhancementAPI(text),
+                { showNotifications: true }
+            );
             this.displayEnhancement(result);
         } catch (error) {
             console.error('Enhancement error:', error);
@@ -3029,7 +3450,11 @@ Always respond with valid JSON only, no additional text.`;
         this.hideAgent();
         
         try {
-            const result = await this.callAgentAPI(text);
+            // Use fallback system for resilient API calls
+            const result = await this.executeWithFallback(
+                () => this.callAgentAPI(text),
+                { showNotifications: true }
+            );
             this.displayAgentResponse(result);
         } catch (error) {
             console.error('Agent error:', error);
@@ -3610,7 +4035,11 @@ Always respond with valid JSON only, no additional text.`;
         this.hideStrategy();
         
         try {
-            const result = await this.callStrategyAPI(text);
+            // Use fallback system for resilient API calls
+            const result = await this.executeWithFallback(
+                () => this.callStrategyAPI(text),
+                { showNotifications: true }
+            );
             this.displayStrategyResponse(result);
         } catch (error) {
             console.error('Strategy agent error:', error);
@@ -5190,6 +5619,9 @@ ${this.emailSignatureHTML}`;
         
         // Update chat header bar
         this.initChatHeader();
+        
+        // Initialize quick model switcher
+        this.initQuickModelSwitcher();
     }
     
     // ==================== SLASH COMMANDS ====================
@@ -5684,6 +6116,300 @@ ${this.emailSignatureHTML}`;
         return modelNames[model] || model.split('/').pop()?.replace(/-/g, ' ') || 'AI Model';
     }
     
+    // ==================== QUICK MODEL SWITCHER ====================
+    
+    initQuickModelSwitcher() {
+        // Sidebar model switcher elements
+        this.modeSidebarModel = document.querySelector('.mode-sidebar-model');
+        this.quickModelBtn = document.getElementById('quickModelBtn');
+        this.quickModelName = document.getElementById('quickModelName');
+        this.quickModelDropdown = document.getElementById('quickModelDropdown');
+        this.quickModelSearch = document.getElementById('quickModelSearch');
+        this.quickModelList = document.getElementById('quickModelList');
+        this.quickProviderTabs = document.getElementById('quickProviderTabs');
+        
+        // Update displayed model name on all elements
+        this.updateQuickModelDisplay();
+        
+        // Toggle dropdown on sidebar model button click
+        if (this.quickModelBtn) {
+            this.quickModelBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleQuickModelDropdown();
+            });
+        }
+        
+        // Provider tabs click handlers
+        if (this.quickProviderTabs) {
+            this.quickProviderTabs.addEventListener('click', (e) => {
+                const tab = e.target.closest('.quick-provider-tab');
+                if (tab) {
+                    e.stopPropagation();
+                    this.switchQuickProvider(tab.dataset.provider);
+                }
+            });
+        }
+        
+        // Prevent dropdown from closing when clicking inside it
+        if (this.quickModelDropdown) {
+            this.quickModelDropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+        
+        // Search filter
+        if (this.quickModelSearch) {
+            this.quickModelSearch.addEventListener('input', (e) => {
+                this.filterQuickModels(e.target.value);
+            });
+            this.quickModelSearch.addEventListener('click', (e) => e.stopPropagation());
+        }
+        
+        // Model option clicks
+        if (this.quickModelList) {
+            this.quickModelList.addEventListener('click', (e) => {
+                const option = e.target.closest('.quick-model-option');
+                if (option) {
+                    const modelId = option.dataset.model;
+                    const provider = option.dataset.provider || 'openrouter';
+                    this.selectQuickModel(modelId, provider);
+                }
+            });
+        }
+        
+        // Close on click outside
+        document.addEventListener('click', (e) => {
+            const modeSidebarModel = document.querySelector('.mode-sidebar-model');
+            const quickModelDropdown = document.getElementById('quickModelDropdown');
+            
+            // Don't close if clicking inside the model switcher or the dropdown
+            if (modeSidebarModel && !modeSidebarModel.contains(e.target) && 
+                quickModelDropdown && !quickModelDropdown.contains(e.target)) {
+                this.closeQuickModelDropdown();
+            }
+        });
+        
+        // Close on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeQuickModelDropdown();
+            }
+        });
+        
+        // Set initial provider tab based on current provider
+        this.updateQuickProviderTab();
+    }
+    
+    switchQuickProvider(provider) {
+        if (!provider) return;
+        
+        // Update tab active states
+        const tabs = document.querySelectorAll('.quick-provider-tab');
+        tabs.forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.provider === provider);
+        });
+        
+        // Show/hide provider model groups
+        const modelGroups = document.querySelectorAll('.quick-provider-models');
+        modelGroups.forEach(group => {
+            group.classList.toggle('active', group.dataset.provider === provider);
+        });
+        
+        // Clear search when switching providers
+        if (this.quickModelSearch) {
+            this.quickModelSearch.value = '';
+            this.filterQuickModels('');
+        }
+    }
+    
+    updateQuickProviderTab() {
+        // Set the active provider tab based on current provider
+        const tabs = document.querySelectorAll('.quick-provider-tab');
+        const modelGroups = document.querySelectorAll('.quick-provider-models');
+        
+        tabs.forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.provider === this.currentProvider);
+        });
+        
+        modelGroups.forEach(group => {
+            group.classList.toggle('active', group.dataset.provider === this.currentProvider);
+        });
+    }
+    
+    toggleQuickModelDropdown() {
+        const modeSidebarModel = document.querySelector('.mode-sidebar-model');
+        if (modeSidebarModel?.classList.contains('open')) {
+            this.closeQuickModelDropdown();
+        } else {
+            this.openQuickModelDropdown();
+        }
+    }
+    
+    openQuickModelDropdown() {
+        const modeSidebarModel = document.querySelector('.mode-sidebar-model');
+        if (!modeSidebarModel) return;
+        
+        modeSidebarModel.classList.add('open');
+        
+        // Update provider tab to match current provider
+        this.updateQuickProviderTab();
+        
+        // Update active state on current model
+        this.updateQuickModelActiveState();
+        
+        // Focus search input
+        if (this.quickModelSearch) {
+            this.quickModelSearch.value = '';
+            this.filterQuickModels('');
+            setTimeout(() => this.quickModelSearch.focus(), 100);
+        }
+    }
+    
+    closeQuickModelDropdown() {
+        const modeSidebarModel = document.querySelector('.mode-sidebar-model');
+        if (modeSidebarModel) {
+            modeSidebarModel.classList.remove('open');
+        }
+    }
+    
+    updateQuickModelActiveState() {
+        if (!this.quickModelList) return;
+        
+        const options = this.quickModelList.querySelectorAll('.quick-model-option');
+        options.forEach(option => {
+            const isActive = option.dataset.model === this.model && option.dataset.provider === this.currentProvider;
+            option.classList.toggle('active', isActive);
+        });
+    }
+    
+    filterQuickModels(searchTerm) {
+        if (!this.quickModelList) return;
+        
+        const term = searchTerm.toLowerCase().trim();
+        
+        // Only filter within the active provider section
+        const activeProvider = document.querySelector('.quick-provider-models.active');
+        if (!activeProvider) return;
+        
+        const options = activeProvider.querySelectorAll('.quick-model-option');
+        const groups = activeProvider.querySelectorAll('.quick-model-group');
+        
+        options.forEach(option => {
+            const text = option.textContent.toLowerCase();
+            const modelId = (option.dataset.model || '').toLowerCase();
+            const matches = !term || text.includes(term) || modelId.includes(term);
+            option.classList.toggle('hidden', !matches);
+        });
+        
+        // Hide empty groups
+        groups.forEach(group => {
+            const visibleOptions = group.querySelectorAll('.quick-model-option:not(.hidden)');
+            group.style.display = visibleOptions.length > 0 ? 'block' : 'none';
+        });
+    }
+    
+    selectQuickModel(modelId, provider) {
+        if (!modelId) return;
+        
+        // Update model and provider
+        this.model = modelId;
+        this.currentProvider = provider;
+        
+        // Save provider to localStorage
+        localStorage.setItem('current_provider', provider);
+        
+        // Save model to the correct provider-specific storage
+        switch (provider) {
+            case 'openrouter':
+                localStorage.setItem('openrouter_model', modelId);
+                if (this.openrouterModelSelect) {
+                    this.openrouterModelSelect.value = modelId;
+                }
+                break;
+            case 'anthropic':
+                localStorage.setItem('anthropic_model', modelId);
+                if (this.anthropicModelSelect) {
+                    this.anthropicModelSelect.value = modelId;
+                }
+                break;
+            case 'openai':
+                localStorage.setItem('openai_model', modelId);
+                if (this.openaiModelSelect) {
+                    this.openaiModelSelect.value = modelId;
+                }
+                break;
+            case 'google':
+                localStorage.setItem('google_model', modelId);
+                if (this.googleModelSelect) {
+                    this.googleModelSelect.value = modelId;
+                }
+                break;
+            case 'deepseek':
+                localStorage.setItem('deepseek_model', modelId);
+                if (this.deepseekModelSelect) {
+                    this.deepseekModelSelect.value = modelId;
+                }
+                break;
+            case 'grok':
+                localStorage.setItem('grok_model', modelId);
+                if (this.grokModelSelect) {
+                    this.grokModelSelect.value = modelId;
+                }
+                break;
+        }
+        
+        // Update UI
+        this.updateQuickModelDisplay();
+        this.updateChatHeader();
+        this.updateSelectionDisplay();
+        
+        // Close dropdown
+        this.closeQuickModelDropdown();
+        
+        // Show toast notification with provider name
+        const providerNames = {
+            openrouter: 'OpenRouter',
+            anthropic: 'Anthropic',
+            openai: 'OpenAI',
+            google: 'Google',
+            deepseek: 'DeepSeek',
+            grok: 'Grok'
+        };
+        const modelName = this.getReadableModelName();
+        this.showToast(`Switched to ${providerNames[provider]}: ${modelName}`, 'success');
+    }
+    
+    updateQuickModelDisplay() {
+        const modelName = this.getReadableModelName();
+        
+        // Update main quick model switcher
+        if (this.quickModelName) {
+            this.quickModelName.textContent = modelName;
+        }
+        
+        // Update inline model button (translation/other modes)
+        if (this.inlineModelName) {
+            this.inlineModelName.textContent = modelName;
+        }
+        
+        // Update chat inline model button
+        if (this.chatInlineModelName) {
+            this.chatInlineModelName.textContent = modelName;
+        }
+        
+        // Update the model badge in chat header
+        const modelBadge = document.getElementById('currentModelBadge');
+        if (modelBadge) {
+            modelBadge.textContent = modelName;
+        }
+        
+        // Update legacy model indicator
+        const modelIndicator = document.getElementById('modelIndicator');
+        if (modelIndicator) {
+            modelIndicator.textContent = modelName;
+        }
+    }
+
     bookmarkChat() {
         const chat = this.chatConversations.find(c => c.id === this.currentChatId);
         if (chat) {
